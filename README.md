@@ -1,3 +1,9 @@
+PinPoint version for initial deployment at Columbia. 
+# Features
+1. Url params for topic filters
+2. Specific topics to Columbia, prepopulated
+3. Can use without auth, need to sign in if interacting (upvote/downvote/comment), suggest pin, etc
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
