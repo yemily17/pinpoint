@@ -178,6 +178,7 @@ export default function Map({
 
   const handleMarkerClick = async (pin: any) => {
     setSelectedPin(pin);
+    console.log("pin details", pin);
     setModalOpen(true);
     setCenter({ lat: pin.latitude, lng: pin.longitude });
 
@@ -193,36 +194,35 @@ export default function Map({
     }
 
     // Fetch like count for the pin
-    const { count: likeCount, error: likeError } = await supabase
-      .from("likes")
-      .select("pin_id", { count: "exact" }) // 'exact' gives the actual count
-      .eq("pin_id", pin.id)
-      .eq("vote_type", 1);
+    // const { count: likeCount, error: likeError } = await supabase
+    //   .from("likes")
+    //   .select("pin_id", { count: "exact" }) // 'exact' gives the actual count
+    //   .eq("pin_id", pin.id)
+    //   .eq("vote_type", 1);
 
-    if (likeError) {
-      console.error(likeError);
-    }
+    // if (likeError) {
+    //   console.error(likeError);
+    // }
 
-    // Fetch dislike count for the pin
-    const { count: dislikeCount, error: dislikeError } = await supabase
-      .from("likes")
-      .select("pin_id", { count: "exact" }) // 'exact' gives the actual count
-      .eq("pin_id", pin.id)
-      .eq("vote_type", -1);
+    // // Fetch dislike count for the pin
+    // const { count: dislikeCount, error: dislikeError } = await supabase
+    //   .from("likes")
+    //   .select("pin_id", { count: "exact" }) // 'exact' gives the actual count
+    //   .eq("pin_id", pin.id)
+    //   .eq("vote_type", -1);
 
-    if (likeError) {
-      console.error(likeError);
-    }
+    // if (likeError) {
+    //   console.error(likeError);
+    // }
 
     // Combine the results in one object
     const result = {
       firstname: userData?.firstname,
       lastname: userData?.lastname,
-      total_likes: (likeCount ?? 0) - (dislikeCount ?? 0),
     };
     setUserFirstName(result.firstname);
     setUserLastName(result.lastname);
-    setSelectedPinLikes(result.total_likes ?? 0);
+    // setSelectedPinLikes(result.total_likes ?? 0);
     console.log(result); // Check the final result
   };
 
@@ -288,7 +288,6 @@ export default function Map({
         description={selectedPin?.description || ""}
         firstname={userFirstName}
         lastname={userLastName}
-        like_count={selectedPinLikes}
         pin_id={selectedPin?.id}
         event_name={selectedPin?.name}
         event_desc={selectedPin?.description}

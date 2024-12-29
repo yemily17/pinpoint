@@ -31,7 +31,7 @@ export default function Home() {
     <>
       {/* <Hero />
       <main className="flex flex-col flex-1 gap-6 px-4">
-        <h2 className="mb-4 text-xl font-medium">Vicinity</h2>
+        <h2 className="mb-4 text-xl font-medium">PinPoint</h2>
         {!isSignedIn && (
           <div className="flex">
             <SignInButton mode="modal">

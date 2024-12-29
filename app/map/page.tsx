@@ -47,7 +47,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import CreatePinModal from "@/components/create-event-modal"; // Ensure this import is present
 import CreateTopicModal from "@/components/create-topic-modal";
 import DropdownSearch from "@/components/dropdown-search";
-import { useUser } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 
 export default function Component() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,7 +63,7 @@ export default function Component() {
   const [events, setEvents] = useState<any[]>([]);
   const [recEvent, setRecEvent] = useState<any>();
   const [likedPins, setLikedPins] = useState<any[]>([]);
-
+  const { openSignIn } = useClerk(); // Destructure openSignIn method
   const { user } = useUser();
 
   const interests = [
@@ -293,6 +293,10 @@ export default function Component() {
                   className="flex items-center justify-center p-4 rounded-full bg-primary text-primary-foreground"
                   whileTap={{ scale: 0.95 }}
                   onClick={async () => {
+                    if (!user) {
+                      openSignIn();
+                      return;
+                    }
                     setIsFabMenuOpen(!isFabMenuOpen);
                   }}
                 >

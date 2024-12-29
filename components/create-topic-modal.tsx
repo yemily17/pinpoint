@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CalendarPlus } from "lucide-react";
+import { SignInButton, useUser } from '@clerk/nextjs';
 
 export default function CreateTopicModal({ open, setOpen }: { open: boolean; setOpen: Dispatch<SetStateAction<boolean>> }) {
   const supabase = createClient(
@@ -13,15 +14,17 @@ export default function CreateTopicModal({ open, setOpen }: { open: boolean; set
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
+  const user = useUser();
+
   const [topicName, setTopicName] = useState("");
   const [topicDescription, setTopicDescription] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
 
   // Simulating user authentication
-  useEffect(() => {
-    // This is a placeholder. In a real app, you'd check the user's auth status here.
-    setUserId("example-user-id");
-  }, []);
+  // useEffect(() => {
+  //   // This is a placeholder. In a real app, you'd check the user's auth status here.
+  //   setUserId("example-user-id");
+  // }, []);
 
   async function handleCreateTopic(e: React.FormEvent) {
     e.preventDefault();
@@ -29,7 +32,7 @@ export default function CreateTopicModal({ open, setOpen }: { open: boolean; set
 
     if (!userId) {
       console.error('User not authenticated');
-      return;
+      return <SignInButton />;
     }
 
     const { data, error } = await supabase
@@ -56,7 +59,13 @@ export default function CreateTopicModal({ open, setOpen }: { open: boolean; set
 
   return (
     <>
-      <Button variant="outline" onClick={() => setOpen(true)}>
+      <Button variant="outline" onClick={() => {
+          // if (!user) {
+          //   window.location.href = '/sign-in';
+          // } else {
+            setOpen(true);
+          // }
+        }}>
         <CalendarPlus className="mr-2 h-4 w-4" />
         Create Topic
       </Button>
