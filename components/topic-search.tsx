@@ -130,7 +130,16 @@ export default function TopicSelector({ onSearch }: { onSearch: any }) {
           classNamePrefix="select"
           placeholder="Select topics..."
           aria-label="Select topics"
-          components={{ DropdownIndicator:() => null, IndicatorSeparator:() => null }}
+          // styles={{
+          //   dropdownIndicator: (base) => ({
+          //     ...base,
+          //     color: 'red', // Change the color of the arrow
+          //     ':hover': {
+          //       color: 'blue' // Change the color on hover
+          //     }
+          //   })
+          // }}
+          // components={{ DropdownIndicator:() => null, IndicatorSeparator:() => null }}
         />
         <Button type="submit" className="ml-4">
           <Search className="h-5 w-5 text-gray-400" />

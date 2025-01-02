@@ -73,7 +73,9 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="space-x-4">
-                  <Button size="lg">Get Started</Button>
+                  <Link href="/map">
+                    <Button size="lg">Get Started</Button>
+                  </Link>
                 </div>
               </div>
             </div>

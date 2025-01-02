@@ -37,6 +37,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { MultiValue } from "react-select";
 import { createClient } from "@supabase/supabase-js";
+import { useSearchParams } from "next/navigation";
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -47,7 +48,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import CreatePinModal from "@/components/create-event-modal"; // Ensure this import is present
 import CreateTopicModal from "@/components/create-topic-modal";
 import DropdownSearch from "@/components/dropdown-search";
-import { useClerk, useUser } from "@clerk/nextjs";
+import { SignInButton, SignOutButton, useClerk, useUser } from "@clerk/nextjs";
 
 export default function Component() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -156,6 +157,23 @@ export default function Component() {
       }
     };
 
+    useEffect(() => {
+      // const { pinId, topicName } = useSearchParams();
+      const searchParams = useSearchParams()
+      console.log(searchParams)
+    
+      // if (pinId && topicName) {
+      //   // Fetch the pin based on the URL parameters and open the modal
+      //   const pin = pins.find(p => p.id === pinId && p.topicName === topicName);
+      //   if (pin) {
+      //     setSelectedPin(pin);
+      //     setModalOpen(true);
+      //     setCenter({ lat: pin.latitude, lng: pin.longitude });
+      //   }
+      // }
+    }, []);
+    // }, [router.query, pins]);
+
     const fetchPins = async () => {
       const { data, error } = await supabase
         .from("pins")
@@ -190,20 +208,19 @@ export default function Component() {
     <div className="flex flex-col h-screen">
       <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-primary text-primary-foreground">
         <h1 className="text-xl font-bold">PINPOINT</h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsCreatePinModalOpen(true)}
-        >
-          <MapPin className="w-6 h-6" />
-          <span className="sr-only">My Location</span>
-        </Button>
+        {!user ? (
+              <SignInButton mode="modal">
+                <Button >Sign In</Button>
+              </SignInButton>
+            ) : (
+              <SignOutButton />
+            )}
       </header>
       <div className="absolute z-10 top-20 left-4 right-4">
         <div className="relative">
           
           <TopicSearch onSearch={handleSearchTopics} />
-          <div className="flex flex-wrap justify-center gap-4 ">
+          {/* <div className="flex flex-wrap justify-center gap-4 ">
             {interests.map((interest, index) => (
               <Button
                 key={index}
@@ -214,7 +231,7 @@ export default function Component() {
                 <span>{interest.label}</span>
               </Button>
             ))}
-          </div>
+          </div> */}
           {/* <DropdownSearch /> */}
         </div>
       </div>

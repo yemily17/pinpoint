@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { createClient } from "@supabase/supabase-js";
 import Modal from "./modal"; // Import your Modal component
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -99,9 +99,10 @@ export default function Map({
     useState<google.maps.LatLngLiteral | null>(null);
   const [userFirstName, setUserFirstName] = useState<string>("");
   const [userLastName, setUserLastName] = useState<string>("");
-
+  const [pinCreatorName, setPinCreatorName] = useState<string>("");
   const [center, setCenter] = useState<google.maps.LatLngLiteral>(initCenter);
-  const [selectedPinLikes, setSelectedPinLikes] = useState<number>(0);
+  // const router = useRouter();
+
 
   const fetchPins = async () => {
     // Fetch pins from Supabase (you can uncomment this if you need it)
@@ -176,7 +177,20 @@ export default function Map({
     gestureHandling: "greedy",
   };
 
-  const handleMarkerClick = async (pin: any) => {
+  const handlePinClick = async (pin: any) => {
+    // Fetch topic name
+    const { data: topicData, error: topicError } = await supabase
+      .from("topics")
+      .select("name")
+      .eq("id", pin.topic_id)
+      .single();
+
+    if (topicError) {
+      console.error(topicError);
+    }
+    window.history.pushState(null, '', `/map/${topicData?.name}/${pin.id}`)
+    // router.push(`/map/${pin.name}/${pin.id}`, undefined, { shallow: true });
+
     setSelectedPin(pin);
     console.log("pin details", pin);
     setModalOpen(true);
@@ -193,37 +207,8 @@ export default function Map({
       console.error(userError);
     }
 
-    // Fetch like count for the pin
-    // const { count: likeCount, error: likeError } = await supabase
-    //   .from("likes")
-    //   .select("pin_id", { count: "exact" }) // 'exact' gives the actual count
-    //   .eq("pin_id", pin.id)
-    //   .eq("vote_type", 1);
-
-    // if (likeError) {
-    //   console.error(likeError);
-    // }
-
-    // // Fetch dislike count for the pin
-    // const { count: dislikeCount, error: dislikeError } = await supabase
-    //   .from("likes")
-    //   .select("pin_id", { count: "exact" }) // 'exact' gives the actual count
-    //   .eq("pin_id", pin.id)
-    //   .eq("vote_type", -1);
-
-    // if (likeError) {
-    //   console.error(likeError);
-    // }
-
-    // Combine the results in one object
-    const result = {
-      firstname: userData?.firstname,
-      lastname: userData?.lastname,
-    };
-    setUserFirstName(result.firstname);
-    setUserLastName(result.lastname);
-    // setSelectedPinLikes(result.total_likes ?? 0);
-    console.log(result); // Check the final result
+    setPinCreatorName(userData?.firstname + " " + userData?.lastname);
+    console.log(pinCreatorName)
   };
 
   const closeModal = () => {
@@ -250,7 +235,7 @@ export default function Map({
             <Marker
               key={pin.id}
               position={{ lat: pin.latitude, lng: pin.longitude }}
-              onClick={() => handleMarkerClick(pin)}
+              onClick={() => handlePinClick(pin)}
               title={pin.name}
               icon={{
                 url: iconMappings[pin.topic_id as keyof typeof iconMappings],
@@ -284,10 +269,9 @@ export default function Map({
       <Modal
         isOpen={modalOpen}
         onClose={closeModal}
-        title={selectedPin?.name || ""}
-        description={selectedPin?.description || ""}
-        firstname={userFirstName}
-        lastname={userLastName}
+        title={selectedPin?.name}
+        description={selectedPin?.description}
+        name={pinCreatorName}
         pin_id={selectedPin?.id}
         event_name={selectedPin?.name}
         event_desc={selectedPin?.description}
