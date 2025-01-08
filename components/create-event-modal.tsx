@@ -27,7 +27,7 @@ import {
   Marker,
   useLoadScript,
 } from "@react-google-maps/api";
-import Map from "./ui/map";
+import PinMap from "./ui/map";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useRouter } from "next/navigation";
@@ -242,7 +242,7 @@ export default function CreatePinModal({
           <div className=" items-center ">
             
             <div className="w-full">
-              <Map pins={[]} style={mapContainerStyle} onMapClick={onMapClick} location={location} />
+              <PinMap pins={[]} style={mapContainerStyle} onMapClick={onMapClick} location={location} />
             </div>
           </div>
           <div className="space-y-2">

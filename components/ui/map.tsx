@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { createClient } from "@supabase/supabase-js";
 import Modal from "./modal"; // Import your Modal component
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -80,27 +80,32 @@ const mapStyles = [
   },
 ];
 
-export default function Map({
+export default function PinMap({
   pins,
   onMapClick,
   location,
   style,
+  openedPin,
 }: {
   pins: any[];
   onMapClick?: (e: google.maps.MapMouseEvent) => void;
   location?: google.maps.LatLngLiteral;
   setLocation?: (location: google.maps.LatLngLiteral) => void;
   style?: any;
+  openedPin?: any;
 }) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedPin, setSelectedPin] = useState<any>(null);
+  const [selectedPin, setSelectedPin] = useState<any>(openedPin);
   const [userLocation, setUserLocation] =
     useState<google.maps.LatLngLiteral | null>(null);
   const [userFirstName, setUserFirstName] = useState<string>("");
   const [userLastName, setUserLastName] = useState<string>("");
   const [pinCreatorName, setPinCreatorName] = useState<string>("");
   const [center, setCenter] = useState<google.maps.LatLngLiteral>(initCenter);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
   // const router = useRouter();
 
 
@@ -116,15 +121,25 @@ export default function Map({
 
   useEffect(() => {
     fetchPins(); // Fetch pins on component mount
-
+    const topic = searchParams.get('topic');
+    const pin = searchParams.get('pin');
+    if(pin){
+      console.log("FINDING PIN BY ID:", pin);
+      console.log("FIRST PIN IS :", pins);
+      console.log("PIN IS :", pins.find((pin) => pin.id === parseInt(pin)));
+      openPinModal(pins.find((pin) => pin.id === parseInt(pin)));
+    }
     // Get the user's location
     if (navigator.geolocation) {
+      console.log("NAVIGATOR")
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          });
+          })
+          console.log("USER LOCATION", [position.coords.latitude, position.coords.longitude]);
+          console.log("SET TO USER LOCATION", userLocation);
           setCenter({
             lat: position.coords.latitude || initCenter.lat,
             lng: position.coords.longitude || initCenter.lng,
@@ -137,6 +152,7 @@ export default function Map({
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
+    console.log("FINAL USER LOCATION", userLocation);
   }, []);
 
   const onLoad = useCallback(
@@ -188,9 +204,15 @@ export default function Map({
     if (topicError) {
       console.error(topicError);
     }
-    window.history.pushState(null, '', `/map/${topicData?.name}/${pin.id}`)
-    // router.push(`/map/${pin.name}/${pin.id}`, undefined, { shallow: true });
-
+    // window.history.pushState(null, '', `/map/${topicData?.name}/${pin.id}`)
+    const params = new URLSearchParams(searchParams);
+    params.set("topic", pin.topic_id);
+    params.set("pin", pin.id);
+    replace(`${pathname}?${params.toString()}`);
+    openPinModal(pin);
+    
+  };
+  const openPinModal = async (pin: any) => {
     setSelectedPin(pin);
     console.log("pin details", pin);
     setModalOpen(true);
@@ -209,13 +231,16 @@ export default function Map({
 
     setPinCreatorName(userData?.firstname + " " + userData?.lastname);
     console.log(pinCreatorName)
-  };
+  }
 
   const closeModal = () => {
     setModalOpen(false);
     setSelectedPin(null);
     setUserFirstName("");
     setUserLastName("");
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.delete('pin');
+    replace(`${pathname}?${nextSearchParams.toString()}`);
   };
   return (
     <div className={!onMapClick ? "h-screen" : ""}>

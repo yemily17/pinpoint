@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import TopicSearch from "@/components/topic-search";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Map from "@/components/ui/map";
+import PinMap from "@/components/ui/map";
 import {
   Card,
   CardContent,
@@ -59,13 +58,14 @@ export default function Component() {
   >([]);
   const [queriedPins, setQueriedPins] = useState<any[]>([]);
   const [isCreatePinModalOpen, setIsCreatePinModalOpen] = useState(false);
-  const [topics, setTopics] = useState<any[]>([]);
+  const [allTopicsList, setAllTopicsList] = useState<any[]>([]);
   const [isCreateTopicModalOpen, setIsCreateTopicModalOpen] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
   const [recEvent, setRecEvent] = useState<any>();
   const [likedPins, setLikedPins] = useState<any[]>([]);
   const { openSignIn } = useClerk(); // Destructure openSignIn method
   const { user } = useUser();
+  const searchParams = useSearchParams();
 
   const interests = [
     {
@@ -136,43 +136,45 @@ export default function Component() {
   async function handleSearchTopics(data: any) {
     // console.log("SEARCHING TOPICS");
     // e.preventDefault();
-    console.log("Database Found Topics:", data);
+    console.log("=======================Database Found Topics:", data);
     setQueriedPins(data);
   }
   // console.log(isCreatePinModalOpen)
-
+  // useEffect(() => {
+  //   // const { pinId, topicName } = useSearchParams();
+  //   const searchParams = useSearchParams()
+  //   console.log(searchParams)
+  
+    // if (pinId && topicName) {
+    //   // Fetch the pin based on the URL parameters and open the modal
+    //   const pin = pins.find(p => p.id === pinId && p.topicName === topicName);
+    //   if (pin) {
+    //     setSelectedPin(pin);
+    //     setModalOpen(true);
+    //     setCenter({ lat: pin.latitude, lng: pin.longitude });
+    //   }
+    // }
+  // }, []);
+  // }, [router.query, pins]);
   useEffect(() => {
+    const searchTopic = searchParams.get('topic');
+    const searchPin = searchParams.get('pin');
     const fetchTopics = async () => {
       const { data, error } = await supabase.from("topics").select();
 
       if (error) {
         console.error("Error fetching topics:", error);
       } else {
-        const eventTypes = data.map((topic: any) => ({
+        const allTopics = data.map((topic: any) => ({
           value: topic.id,
           label: topic.name,
         }));
 
-        setTopics(eventTypes);
+        setAllTopicsList(allTopics);
       }
     };
 
-    useEffect(() => {
-      // const { pinId, topicName } = useSearchParams();
-      const searchParams = useSearchParams()
-      console.log(searchParams)
     
-      // if (pinId && topicName) {
-      //   // Fetch the pin based on the URL parameters and open the modal
-      //   const pin = pins.find(p => p.id === pinId && p.topicName === topicName);
-      //   if (pin) {
-      //     setSelectedPin(pin);
-      //     setModalOpen(true);
-      //     setCenter({ lat: pin.latitude, lng: pin.longitude });
-      //   }
-      // }
-    }, []);
-    // }, [router.query, pins]);
 
     const fetchPins = async () => {
       const { data, error } = await supabase
@@ -200,7 +202,7 @@ export default function Component() {
     fetchPins();
     fetchTopics();
     fetchLikedPins();
-  }, [setTopics]);
+  }, [setAllTopicsList]);
 
   console.log("REC EVENT");
   console.log(recEvent);
@@ -219,7 +221,7 @@ export default function Component() {
       <div className="absolute z-10 top-20 left-4 right-4">
         <div className="relative">
           
-          <TopicSearch onSearch={handleSearchTopics} />
+          <TopicSearch onSearch={handleSearchTopics}/>
           {/* <div className="flex flex-wrap justify-center gap-4 ">
             {interests.map((interest, index) => (
               <Button
@@ -238,11 +240,11 @@ export default function Component() {
       <main className="relative flex-1">
         {/* Map component */}
         <div className="absolute inset-0 h-screen">
-          <Map pins={queriedPins} />
+          <PinMap pins={queriedPins} /> {/* TODO: pass in opened pin here */}
         </div>
 
         <CreatePinModal
-          topics={topics} // Ensure topics is defined or passed correctly
+          topics={allTopicsList} // Ensure topics is defined or passed correctly
           open={isCreatePinModalOpen}
           setOpen={setIsCreatePinModalOpen}
         />
