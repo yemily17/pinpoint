@@ -145,11 +145,6 @@ export default function Component({ isOpen, onClose, title, description, name, p
     console.log('Comment clicked')
   }
 
-  const handleShare = () => {
-    // Implement share functionality
-    console.log('Share clicked')
-  }
-
   return (
     <AnimatePresence>
       {isOpen && (

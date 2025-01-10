@@ -240,7 +240,7 @@ export default function Component() {
       <main className="relative flex-1">
         {/* Map component */}
         <div className="absolute inset-0 h-screen">
-          <PinMap pins={queriedPins} /> {/* TODO: pass in opened pin here */}
+          <PinMap pins={queriedPins} />
         </div>
 
         <CreatePinModal

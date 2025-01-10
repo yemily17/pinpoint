@@ -31,7 +31,6 @@ export default function TopicSelector({ onSearch, prefilledTopics }: { onSearch:
   const { replace } = useRouter();
   useEffect(() => {
     const allTopics = fetchTopics();
-    const topicParam = searchParams.get('topic');
     console.log("ALL TOPICS", allTopics);
     // if (topicParam) {
     //   console.log("Found topic in search params:", topicParam);

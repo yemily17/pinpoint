@@ -121,14 +121,7 @@ export default function PinMap({
 
   useEffect(() => {
     fetchPins(); // Fetch pins on component mount
-    const topic = searchParams.get('topic');
-    const pin = searchParams.get('pin');
-    if(pin){
-      console.log("FINDING PIN BY ID:", pin);
-      console.log("FIRST PIN IS :", pins);
-      console.log("PIN IS :", pins.find((pin) => pin.id === parseInt(pin)));
-      openPinModal(pins.find((pin) => pin.id === parseInt(pin)));
-    }
+    
     // Get the user's location
     if (navigator.geolocation) {
       console.log("NAVIGATOR")
@@ -155,6 +148,18 @@ export default function PinMap({
     console.log("FINAL USER LOCATION", userLocation);
   }, []);
 
+  useEffect(() => {
+    const topic = searchParams.get('topic');
+    console.log("PINS ARE:", pins);
+    const pinParamId = searchParams.get('pin');
+    if(pinParamId && pins.length > 0){
+      console.log("FINDING PIN BY ID:", pinParamId);
+      console.log("FIRST PIN IS :", pins);
+      const urlPin = pins.find((pin) => pin.id === parseInt(pinParamId));
+      console.log("PIN IS :", urlPin);
+      openPinModal(urlPin);
+    }
+  }, [pins]);
   const onLoad = useCallback(
     (map: google.maps.Map) => {
       mapRef.current = map;
@@ -194,6 +199,7 @@ export default function PinMap({
   };
 
   const handlePinClick = async (pin: any) => {
+    setSelectedPin(pin);
     // Fetch topic name
     const { data: topicData, error: topicError } = await supabase
       .from("topics")
@@ -209,6 +215,7 @@ export default function PinMap({
     params.set("topic", pin.topic_id);
     params.set("pin", pin.id);
     replace(`${pathname}?${params.toString()}`);
+    console.log(pin);
     openPinModal(pin);
     
   };
