@@ -20,6 +20,7 @@ const iconMappings = {
   10: "/assets/water.svg",
   11: "/assets/farmers-market.svg",
   12: "/assets/book.svg",
+  18: "/assets/pawprintLogo.svg",
 };
 
 const containerStyle = {
