@@ -18,7 +18,7 @@ interface ShareButtonProps {
 export function ShareButton({ title, description }: ShareButtonProps) {
   const [isSupported, setIsSupported] = useState(false)
   const pathname = usePathname()
-  const currentUrl = typeof window !== 'undefined' ? `${window.location.origin}${pathname}` : ''
+  const currentUrl = typeof window !== 'undefined' ? `${window.location.href}` : ''
 
 
   useEffect(() => {
