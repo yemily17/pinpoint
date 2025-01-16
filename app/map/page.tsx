@@ -48,6 +48,7 @@ import CreatePinModal from "@/components/create-event-modal"; // Ensure this imp
 import CreateTopicModal from "@/components/create-topic-modal";
 import DropdownSearch from "@/components/dropdown-search";
 import { SignInButton, SignOutButton, useClerk, useUser } from "@clerk/nextjs";
+import Link from "next/link";
 
 export default function Component() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,43 +67,6 @@ export default function Component() {
   const { openSignIn } = useClerk(); // Destructure openSignIn method
   const { user } = useUser();
   const searchParams = useSearchParams();
-
-  const interests = [
-    {
-      icon: ShowerHead,
-      label: "Bathrooms",
-      gradient: "from-blue-500 to-cyan-500",
-      id: 1,
-    },
-    {
-      icon: Siren,
-      label: "Police",
-      gradient: "from-red-500 to-rose-500",
-    },
-    
-
-  ];
-
-  const trendingEvents = [
-    {
-      id: 5,
-      title: "Fashion Week",
-      location: "Paris, France",
-      date: "2023-09-25",
-      time: "02:00 PM",
-      color: "bg-pink-50",
-    },
-    {
-      id: 6,
-      title: "Gaming Convention",
-      location: "Los Angeles, CA",
-      date: "2023-10-10",
-      time: "10:00 AM",
-      color: "bg-indigo-50",
-    },
-  ];
-
-  const [activeTab, setActiveTab] = useState("recommended");
 
   console.log("liked pins");
   console.log(likedPins.filter((pin) => pin.user_id === user?.id));
@@ -208,7 +172,7 @@ export default function Component() {
   console.log(recEvent);
   return (
     <div className="flex flex-col h-screen">
-      <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-primary text-primary-foreground">
+      {/* <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-primary text-primary-foreground">
         <h1 className="text-xl font-bold">PINPOINT</h1>
         {!user ? (
               <SignInButton mode="modal">
@@ -217,7 +181,22 @@ export default function Component() {
             ) : (
               <SignOutButton />
             )}
-      </header>
+      </header> */}
+      <header className="flex items-center px-4 lg:px-6 h-14">
+          <Link className="flex items-center justify-center" href="#">
+            <MapPin className="w-6 h-6 text-primary" />
+            <span className="ml-2 text-2xl font-bold">PinPoint</span>
+          </Link>
+          <nav className="flex gap-4 ml-auto sm:gap-6">
+            {!user ? (
+              <SignInButton mode="modal">
+                <Button >Sign In</Button>
+              </SignInButton>
+            ) : (
+              <SignOutButton />
+            )}
+          </nav>
+        </header>
       <div className="absolute z-10 top-20 left-4 right-4">
         <div className="relative">
           
