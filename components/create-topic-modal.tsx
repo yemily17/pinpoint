@@ -19,7 +19,7 @@ export default function CreateTopicModal({ open, setOpen }: { open: boolean; set
 
   const [topicName, setTopicName] = useState("");
   const [topicDescription, setTopicDescription] = useState("");
-
+  const [communityId, setCommunityId] = useState("");
   // Simulating user authentication
   // useEffect(() => {
   //   // This is a placeholder. In a real app, you'd check the user's auth status here.
@@ -42,6 +42,7 @@ export default function CreateTopicModal({ open, setOpen }: { open: boolean; set
           name: topicName,
           description: topicDescription,
           user_id: user.id,
+          community_id: communityId,
         }
       ]);
 
@@ -55,6 +56,7 @@ export default function CreateTopicModal({ open, setOpen }: { open: boolean; set
     setTopicName("");
     setTopicDescription("");
     setOpen(false);
+    setCommunityId("");
   }
 
   return (
@@ -94,6 +96,18 @@ export default function CreateTopicModal({ open, setOpen }: { open: boolean; set
                 onChange={(e) => setTopicName(e.target.value)}
                 placeholder="Enter topic name"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="community-selector">Community: </Label>
+              <select
+              id="community-selector"
+              value={communityId}
+              onChange={(e) => setCommunityId(e.target.value)}
+              className="input"
+              >
+              <option value="1">Columbia</option>
+              <option value="2">NYC</option>
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="topic-description">Description</Label>
