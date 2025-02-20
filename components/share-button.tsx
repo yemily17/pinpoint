@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 
 interface ShareButtonProps {
   title: string
@@ -17,8 +17,9 @@ interface ShareButtonProps {
 
 export function ShareButton({ title, description }: ShareButtonProps) {
   const [isSupported, setIsSupported] = useState(false)
-  const pathname = usePathname()
-  const currentUrl = typeof window !== 'undefined' ? `${window.location.href}` : ''
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentUrl = `${window.location.origin}${pathname}?${searchParams.toString()}`;
 
 
   useEffect(() => {
