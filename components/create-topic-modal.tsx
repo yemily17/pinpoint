@@ -14,11 +14,11 @@ export default function CreateTopicModal({ open, setOpen }: { open: boolean; set
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  const user = useUser();
+  const { user } = useUser();
+  console.log(user);
 
   const [topicName, setTopicName] = useState("");
   const [topicDescription, setTopicDescription] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
 
   // Simulating user authentication
   // useEffect(() => {
@@ -30,7 +30,7 @@ export default function CreateTopicModal({ open, setOpen }: { open: boolean; set
     e.preventDefault();
     console.log("Creating new topic");
 
-    if (!userId) {
+    if (!user) {
       console.error('User not authenticated');
       return <SignInButton />;
     }
@@ -41,7 +41,7 @@ export default function CreateTopicModal({ open, setOpen }: { open: boolean; set
         {
           name: topicName,
           description: topicDescription,
-          user_id: userId,
+          user_id: user.id,
         }
       ]);
 

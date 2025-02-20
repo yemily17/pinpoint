@@ -16,6 +16,7 @@ const supabase = createClient(
 interface Topic {
   id: number;
   name: string;
+  community_id: number;
   // Add any other fields that exist in your topics table
 }
 
@@ -50,7 +51,7 @@ export default function TopicSelector({ onSearch, prefilledTopics }: { onSearch:
     try {
       const { data, error } = await supabase
         .from("topics")
-        .select("id, name")
+        .select("id, name, community_id")
         .order("name");
 
       if (error) throw error;
@@ -85,17 +86,22 @@ export default function TopicSelector({ onSearch, prefilledTopics }: { onSearch:
   };
 
   if (isLoading) {
-    return <div className="text-center">Loading topics...</div>;
+    <div className="text-center text-2xl">Loading topics...</div>;
   }
 
   if (error) {
     return <div className="text-center text-red-500">{error}</div>;
   }
 
-  const options = topics.map((topic) => ({
-    value: topic.id,
-    label: topic.name,
-  }));
+  const communityParam = searchParams.get('community');
+  console.log("COMMUNITY PARAM", communityParam);
+  console.log("TOPICS", topics);
+  const options = topics
+    .filter((topic) => !communityParam || topic.community_id === parseInt(communityParam))
+    .map((topic) => ({
+      value: topic.id,
+      label: topic.name,
+    }));
 
   const eventTypes = topics.map((topic: any) => ({
     value: topic.id,

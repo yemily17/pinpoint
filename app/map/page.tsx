@@ -36,7 +36,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { MultiValue } from "react-select";
 import { createClient } from "@supabase/supabase-js";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -67,6 +67,9 @@ export default function Component() {
   const { openSignIn } = useClerk(); // Destructure openSignIn method
   const { user } = useUser();
   const searchParams = useSearchParams();
+  const { replace } = useRouter();
+  const pathname = usePathname();
+  const [selectedCommunity, setSelectedCommunity] = useState("1");
 
   console.log("liked pins");
   console.log(likedPins.filter((pin) => pin.user_id === user?.id));
@@ -120,6 +123,13 @@ export default function Component() {
     // }
   // }, []);
   // }, [router.query, pins]);
+  const handleCommunityChange = (event) => {
+    setSelectedCommunity(event.target.value);
+    const params = new URLSearchParams(searchParams);
+                  params.set('community', event.target.value);
+                    replace(`${pathname.replace('/communities', '/map')}?${params.toString()}`);
+    // Fetch and update topics based on the new community
+  };
   useEffect(() => {
     const searchTopic = searchParams.get('topic');
     const searchPin = searchParams.get('pin');
@@ -172,29 +182,29 @@ export default function Component() {
   console.log(recEvent);
   return (
     <div className="flex flex-col h-screen">
-      {/* <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-primary text-primary-foreground">
-        <h1 className="text-xl font-bold">PINPOINT</h1>
-        {!user ? (
-              <SignInButton mode="modal">
-                <Button >Sign In</Button>
-              </SignInButton>
-            ) : (
-              <SignOutButton />
-            )}
-      </header> */}
       <header className="flex items-center px-4 lg:px-6 h-14">
           <Link className="flex items-center justify-center" href="#">
-            <MapPin className="w-6 h-6 text-primary" />
-            <span className="ml-2 text-2xl font-bold">PinPoint</span>
+        <MapPin className="w-6 h-6 text-primary" />
+        <span className="ml-2 text-2xl font-bold">PinPoint</span>
           </Link>
+          <div className="community-selector ml-4">
+        <select
+          value={selectedCommunity}
+          onChange={handleCommunityChange}
+          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+        >
+          <option value="1">Columbia</option>
+          <option value="2">NYC</option>
+        </select>
+          </div>
           <nav className="flex gap-4 ml-auto sm:gap-6">
-            {!user ? (
-              <SignInButton mode="modal">
-                <Button >Sign In</Button>
-              </SignInButton>
-            ) : (
-              <SignOutButton />
-            )}
+        {!user ? (
+          <SignInButton mode="modal">
+            <Button>Sign In</Button>
+          </SignInButton>
+        ) : (
+          <SignOutButton />
+        )}
           </nav>
         </header>
       <div className="absolute z-10 top-20 left-4 right-4">

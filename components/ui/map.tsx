@@ -10,17 +10,19 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const iconMappings = {
-  1: "/assets/bathroom.svg",
-  2: "/assets/wheelchair.svg",
-  3: "/assets/police.svg",
-  5: "/assets/food.svg",
-  6: "/assets/gym.svg",
-  8: "/assets/world.svg",
-  9: "/assets/wifi.svg",
-  10: "/assets/water.svg",
-  11: "/assets/farmers-market.svg",
-  12: "/assets/book.svg",
-  18: "/assets/pawprintLogo.svg",
+  1: "/assets/topics/bathroom.svg",
+  2: "/assets/topics/wheelchair.svg",
+  3: "/assets/topics/police.svg",
+  5: "/assets/topics/food.svg",
+  6: "/assets/topics/gym.svg",
+  8: "/assets/topics/world.svg",
+  9: "/assets/topics/wifi.svg",
+  10: "/assets/topics/water.svg",
+  11: "/assets/topics/farmers-market.svg",
+  12: "/assets/topics/book.svg",
+  18: "/assets/topics/pawprintLogo.svg",
+  23: "/assets/topics/flex.png",
+  24: "/assets/topics/vendingMachine.svg",
 };
 
 const containerStyle = {
