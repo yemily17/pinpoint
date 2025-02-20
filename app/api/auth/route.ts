@@ -59,6 +59,7 @@ export async function POST(req: Request) {
   // Handle the user.created event
   const eventType = evt.type
   if (eventType === 'user.created') {
+    console.log("USER CREATED")
     try {
       const id = evt.data.id
 

@@ -28,21 +28,6 @@ export default function Home() {
   console.log(isSignedIn);
 
   return (
-    <>
-      {/* <Hero />
-      <main className="flex flex-col flex-1 gap-6 px-4">
-        <h2 className="mb-4 text-xl font-medium">Vicinity</h2>
-        {!isSignedIn && (
-          <div className="flex">
-            <SignInButton mode="modal">
-              <button className="absolute flex items-center px-6 py-3 space-x-2 text-white transition-colors bg-gray-700 rounded-full bottom-10 right-10 hover:bg-gray-600">
-                <span>Sign Up</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </SignInButton>
-          </div>
-        )}
-      </main> */}
       <div className="flex flex-col min-h-screen">
         <header className="flex items-center px-4 lg:px-6 h-14">
           <Link className="flex items-center justify-center" href="#">
@@ -73,13 +58,14 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="space-x-4">
-                  <Button size="lg">Get Started</Button>
+                  <Link href="/map">
+                    <Button size="lg">Get Started</Button>
+                  </Link>
                 </div>
               </div>
             </div>
           </section>
         </main>
       </div>
-    </>
   );
 }

@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import TopicSearch from "@/components/topic-search";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Map from "@/components/ui/map";
+import PinMap from "@/components/ui/map";
 import {
   Card,
   CardContent,
@@ -37,6 +36,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { MultiValue } from "react-select";
 import { createClient } from "@supabase/supabase-js";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -47,7 +47,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import CreatePinModal from "@/components/create-event-modal"; // Ensure this import is present
 import CreateTopicModal from "@/components/create-topic-modal";
 import DropdownSearch from "@/components/dropdown-search";
-import { useUser } from "@clerk/nextjs";
+import { SignInButton, SignOutButton, useClerk, useUser } from "@clerk/nextjs";
+import Link from "next/link";
 
 export default function Component() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,50 +59,17 @@ export default function Component() {
   >([]);
   const [queriedPins, setQueriedPins] = useState<any[]>([]);
   const [isCreatePinModalOpen, setIsCreatePinModalOpen] = useState(false);
-  const [topics, setTopics] = useState<any[]>([]);
+  const [allTopicsList, setAllTopicsList] = useState<any[]>([]);
   const [isCreateTopicModalOpen, setIsCreateTopicModalOpen] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
   const [recEvent, setRecEvent] = useState<any>();
   const [likedPins, setLikedPins] = useState<any[]>([]);
-
+  const { openSignIn } = useClerk(); // Destructure openSignIn method
   const { user } = useUser();
-
-  const interests = [
-    {
-      icon: ShowerHead,
-      label: "Bathrooms",
-      gradient: "from-blue-500 to-cyan-500",
-      id: 1,
-    },
-    {
-      icon: Siren,
-      label: "Police",
-      gradient: "from-red-500 to-rose-500",
-    },
-    
-
-  ];
-
-  const trendingEvents = [
-    {
-      id: 5,
-      title: "Fashion Week",
-      location: "Paris, France",
-      date: "2023-09-25",
-      time: "02:00 PM",
-      color: "bg-pink-50",
-    },
-    {
-      id: 6,
-      title: "Gaming Convention",
-      location: "Los Angeles, CA",
-      date: "2023-10-10",
-      time: "10:00 AM",
-      color: "bg-indigo-50",
-    },
-  ];
-
-  const [activeTab, setActiveTab] = useState("recommended");
+  const searchParams = useSearchParams();
+  const { replace } = useRouter();
+  const pathname = usePathname();
+  const [selectedCommunity, setSelectedCommunity] = useState("1");
 
   console.log("liked pins");
   console.log(likedPins.filter((pin) => pin.user_id === user?.id));
@@ -135,26 +103,52 @@ export default function Component() {
   async function handleSearchTopics(data: any) {
     // console.log("SEARCHING TOPICS");
     // e.preventDefault();
-    console.log("Database Found Topics:", data);
+    console.log("=======================Database Found Topics:", data);
     setQueriedPins(data);
   }
   // console.log(isCreatePinModalOpen)
-
+  // useEffect(() => {
+  //   // const { pinId, topicName } = useSearchParams();
+  //   const searchParams = useSearchParams()
+  //   console.log(searchParams)
+  
+    // if (pinId && topicName) {
+    //   // Fetch the pin based on the URL parameters and open the modal
+    //   const pin = pins.find(p => p.id === pinId && p.topicName === topicName);
+    //   if (pin) {
+    //     setSelectedPin(pin);
+    //     setModalOpen(true);
+    //     setCenter({ lat: pin.latitude, lng: pin.longitude });
+    //   }
+    // }
+  // }, []);
+  // }, [router.query, pins]);
+  const handleCommunityChange = (event) => {
+    setSelectedCommunity(event.target.value);
+    const params = new URLSearchParams(searchParams);
+                  params.set('community', event.target.value);
+                    replace(`${pathname.replace('/communities', '/map')}?${params.toString()}`);
+    // Fetch and update topics based on the new community
+  };
   useEffect(() => {
+    const searchTopic = searchParams.get('topic');
+    const searchPin = searchParams.get('pin');
     const fetchTopics = async () => {
       const { data, error } = await supabase.from("topics").select();
 
       if (error) {
         console.error("Error fetching topics:", error);
       } else {
-        const eventTypes = data.map((topic: any) => ({
+        const allTopics = data.map((topic: any) => ({
           value: topic.id,
           label: topic.name,
         }));
 
-        setTopics(eventTypes);
+        setAllTopicsList(allTopics);
       }
     };
+
+    
 
     const fetchPins = async () => {
       const { data, error } = await supabase
@@ -182,28 +176,42 @@ export default function Component() {
     fetchPins();
     fetchTopics();
     fetchLikedPins();
-  }, [setTopics]);
+  }, [setAllTopicsList]);
 
   console.log("REC EVENT");
   console.log(recEvent);
   return (
     <div className="flex flex-col h-screen">
-      <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-primary text-primary-foreground">
-        <h1 className="text-xl font-bold">PINPOINT</h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsCreatePinModalOpen(true)}
+      <header className="flex items-center px-4 lg:px-6 h-14">
+          <Link className="flex items-center justify-center" href="#">
+        <MapPin className="w-6 h-6 text-primary" />
+        <span className="ml-2 text-2xl font-bold">PinPoint</span>
+          </Link>
+          <div className="community-selector ml-4">
+        <select
+          value={selectedCommunity}
+          onChange={handleCommunityChange}
+          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
         >
-          <MapPin className="w-6 h-6" />
-          <span className="sr-only">My Location</span>
-        </Button>
-      </header>
+          <option value="1">Columbia</option>
+          <option value="2">NYC</option>
+        </select>
+          </div>
+          <nav className="flex gap-4 ml-auto sm:gap-6">
+        {!user ? (
+          <SignInButton mode="modal">
+            <Button>Sign In</Button>
+          </SignInButton>
+        ) : (
+          <SignOutButton />
+        )}
+          </nav>
+        </header>
       <div className="absolute z-10 top-20 left-4 right-4">
         <div className="relative">
           
-          <TopicSearch onSearch={handleSearchTopics} />
-          <div className="flex flex-wrap justify-center gap-4 ">
+          <TopicSearch onSearch={handleSearchTopics}/>
+          {/* <div className="flex flex-wrap justify-center gap-4 ">
             {interests.map((interest, index) => (
               <Button
                 key={index}
@@ -214,18 +222,18 @@ export default function Component() {
                 <span>{interest.label}</span>
               </Button>
             ))}
-          </div>
+          </div> */}
           {/* <DropdownSearch /> */}
         </div>
       </div>
       <main className="relative flex-1">
         {/* Map component */}
         <div className="absolute inset-0 h-screen">
-          <Map pins={queriedPins} />
+          <PinMap pins={queriedPins} />
         </div>
 
         <CreatePinModal
-          topics={topics} // Ensure topics is defined or passed correctly
+          topics={allTopicsList} // Ensure topics is defined or passed correctly
           open={isCreatePinModalOpen}
           setOpen={setIsCreatePinModalOpen}
         />
@@ -293,6 +301,10 @@ export default function Component() {
                   className="flex items-center justify-center p-4 rounded-full bg-primary text-primary-foreground"
                   whileTap={{ scale: 0.95 }}
                   onClick={async () => {
+                    if (!user) {
+                      openSignIn();
+                      return;
+                    }
                     setIsFabMenuOpen(!isFabMenuOpen);
                   }}
                 >
@@ -317,116 +329,6 @@ export default function Component() {
         </div>
 
         {/* Slide-up menu */}
-        <div
-          className={`absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl shadow-lg transition-transform duration-300 ease-in-out transform ${
-            isMenuOpen ? "translate-y-0" : "translate-y-[calc(100%-2.5rem)]"
-          } z-20`}
-        >
-          <div
-            className="flex justify-center p-2 cursor-pointer"
-            onClick={async () => {
-              setIsMenuOpen(!isMenuOpen);
-              console.log("made request for refc");
-              const response = await fetch("/api/rec", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  eventHistory: likedPins.filter(
-                    (pin) => pin.user_id === user?.id
-                  ),
-                  allEvents: events,
-                }),
-              });
-              const data = await response.json();
-              setRecEvent(JSON.parse(data));
-              console.log("RECEIVED RECOMMENDATION");
-              console.log(data);
-            }}
-          >
-            <ChevronUp
-              className={`h-6 w-6 transition-transform duration-300 ${isMenuOpen ? "rotate-180" : ""}`}
-            />
-          </div>
-          <div className="p-4 max-h-[70vh] overflow-y-auto">
-            <div className="w-full max-w-md mx-auto p-4 bg-background">
-              <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-3 mb-6">
-                  <TabsTrigger value="recommended" className="text-xs py-2">
-                    <ThumbsUp className="w-4 h-4 mr-1" />
-                    For You
-                  </TabsTrigger>
-                  <TabsTrigger value="upcoming" className="text-xs py-2">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    Upcoming
-                  </TabsTrigger>
-                  <TabsTrigger value="trending" className="text-xs py-2">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    Trending
-                  </TabsTrigger>
-                </TabsList>
-                <div className="max-h-[calc(100vh-160px)] overflow-y-auto px-1">
-                  <TabsContent value="recommended">
-                    <h2 className="mb-4 text-xl font-bold flex items-center">
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      Recommended for you
-                    </h2>
-                    {/* {renderEvents(recommendedEvents)} */}
-                    <h1 className="mb-3">{recEvent?.event.reason}</h1>
-                    {recEvent !== undefined ? (
-                      renderEvents([
-                        {
-                          title: recEvent?.event.name,
-                          location: recEvent?.event.location,
-                          date: recEvent?.event.date,
-                          time: recEvent?.event.time,
-                          color: "bg-purple-50",
-                        },
-                      ])
-                    ) : (
-                      <h1>Loading...</h1>
-                    )}
-                  </TabsContent>
-                  <TabsContent value="upcoming">
-                    <h2 className="mb-4 text-xl font-bold flex items-center">
-                      <Calendar className="w-5 h-5 mr-2" />
-                      Upcoming Events
-                    </h2>
-                    {renderEvents(
-                      events.slice(0, 2).map((event, index) => {
-                        return {
-                          title: event.name,
-                          location: event.latitude + ", " + event.longitude,
-                          date:
-                            event.datetime !== null
-                              ? event.datetime!.split("T")[0]
-                              : "N/A",
-                          time:
-                            event.datetime !== null
-                              ? event.datetime!.split("T")[1]
-                              : "N/A",
-                          color: index === 0 ? "bg-green-50" : "bg-yellow-50",
-                        };
-                      })
-                    )}
-                  </TabsContent>
-                  <TabsContent value="trending">
-                    <h2 className="mb-4 text-xl font-bold flex items-center">
-                      <TrendingUp className="w-5 h-5 mr-2" />
-                      Trending
-                    </h2>
-                    {renderEvents(trendingEvents)}
-                  </TabsContent>
-                </div>
-              </Tabs>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );

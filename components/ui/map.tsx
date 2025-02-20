@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { createClient } from "@supabase/supabase-js";
 import Modal from "./modal"; // Import your Modal component
-import { useRouter } from "next/router";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -10,16 +10,19 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const iconMappings = {
-  1: "/assets/bathroom.svg",
-  2: "/assets/wheelchair.svg",
-  3: "/assets/police.svg",
-  5: "/assets/food.svg",
-  6: "/assets/gym.svg",
-  8: "/assets/world.svg",
-  9: "/assets/wifi.svg",
-  10: "/assets/water.svg",
-  11: "/assets/farmers-market.svg",
-  12: "/assets/book.svg",
+  1: "/assets/topics/bathroom.svg",
+  2: "/assets/topics/wheelchair.svg",
+  3: "/assets/topics/police.svg",
+  5: "/assets/topics/food.svg",
+  6: "/assets/topics/gym.svg",
+  8: "/assets/topics/world.svg",
+  9: "/assets/topics/wifi.svg",
+  10: "/assets/topics/water.svg",
+  11: "/assets/topics/farmers-market.svg",
+  12: "/assets/topics/book.svg",
+  18: "/assets/topics/pawprintLogo.svg",
+  23: "/assets/topics/flex.png",
+  24: "/assets/topics/vendingMachine.svg",
 };
 
 const containerStyle = {
@@ -80,28 +83,34 @@ const mapStyles = [
   },
 ];
 
-export default function Map({
+export default function PinMap({
   pins,
   onMapClick,
   location,
   style,
+  openedPin,
 }: {
   pins: any[];
   onMapClick?: (e: google.maps.MapMouseEvent) => void;
   location?: google.maps.LatLngLiteral;
   setLocation?: (location: google.maps.LatLngLiteral) => void;
   style?: any;
+  openedPin?: any;
 }) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedPin, setSelectedPin] = useState<any>(null);
+  const [selectedPin, setSelectedPin] = useState<any>(openedPin);
   const [userLocation, setUserLocation] =
     useState<google.maps.LatLngLiteral | null>(null);
   const [userFirstName, setUserFirstName] = useState<string>("");
   const [userLastName, setUserLastName] = useState<string>("");
-
+  const [pinCreatorName, setPinCreatorName] = useState<string>("");
   const [center, setCenter] = useState<google.maps.LatLngLiteral>(initCenter);
-  const [selectedPinLikes, setSelectedPinLikes] = useState<number>(0);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { replace } = useRouter();
+  // const router = useRouter();
+
 
   const fetchPins = async () => {
     // Fetch pins from Supabase (you can uncomment this if you need it)
@@ -115,15 +124,18 @@ export default function Map({
 
   useEffect(() => {
     fetchPins(); // Fetch pins on component mount
-
+    
     // Get the user's location
     if (navigator.geolocation) {
+      console.log("NAVIGATOR")
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          });
+          })
+          console.log("USER LOCATION", [position.coords.latitude, position.coords.longitude]);
+          console.log("SET TO USER LOCATION", userLocation);
           setCenter({
             lat: position.coords.latitude || initCenter.lat,
             lng: position.coords.longitude || initCenter.lng,
@@ -136,8 +148,21 @@ export default function Map({
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
+    console.log("FINAL USER LOCATION", userLocation);
   }, []);
 
+  useEffect(() => {
+    const topic = searchParams.get('topic');
+    console.log("PINS ARE:", pins);
+    const pinParamId = searchParams.get('pin');
+    if(pinParamId && pins.length > 0){
+      console.log("FINDING PIN BY ID:", pinParamId);
+      console.log("FIRST PIN IS :", pins);
+      const urlPin = pins.find((pin) => pin.id === parseInt(pinParamId));
+      console.log("PIN IS :", urlPin);
+      openPinModal(urlPin);
+    }
+  }, [pins]);
   const onLoad = useCallback(
     (map: google.maps.Map) => {
       mapRef.current = map;
@@ -176,8 +201,30 @@ export default function Map({
     gestureHandling: "greedy",
   };
 
-  const handleMarkerClick = async (pin: any) => {
+  const handlePinClick = async (pin: any) => {
     setSelectedPin(pin);
+    // Fetch topic name
+    const { data: topicData, error: topicError } = await supabase
+      .from("topics")
+      .select("name")
+      .eq("id", pin.topic_id)
+      .single();
+
+    if (topicError) {
+      console.error(topicError);
+    }
+    // window.history.pushState(null, '', `/map/${topicData?.name}/${pin.id}`)
+    const params = new URLSearchParams(searchParams);
+    params.set("topic", pin.topic_id);
+    params.set("pin", pin.id);
+    replace(`${pathname}?${params.toString()}`);
+    console.log(pin);
+    openPinModal(pin);
+    
+  };
+  const openPinModal = async (pin: any) => {
+    setSelectedPin(pin);
+    console.log("pin details", pin);
     setModalOpen(true);
     setCenter({ lat: pin.latitude, lng: pin.longitude });
 
@@ -192,45 +239,18 @@ export default function Map({
       console.error(userError);
     }
 
-    // Fetch like count for the pin
-    const { count: likeCount, error: likeError } = await supabase
-      .from("likes")
-      .select("pin_id", { count: "exact" }) // 'exact' gives the actual count
-      .eq("pin_id", pin.id)
-      .eq("vote_type", 1);
-
-    if (likeError) {
-      console.error(likeError);
-    }
-
-    // Fetch dislike count for the pin
-    const { count: dislikeCount, error: dislikeError } = await supabase
-      .from("likes")
-      .select("pin_id", { count: "exact" }) // 'exact' gives the actual count
-      .eq("pin_id", pin.id)
-      .eq("vote_type", -1);
-
-    if (likeError) {
-      console.error(likeError);
-    }
-
-    // Combine the results in one object
-    const result = {
-      firstname: userData?.firstname,
-      lastname: userData?.lastname,
-      total_likes: (likeCount ?? 0) - (dislikeCount ?? 0),
-    };
-    setUserFirstName(result.firstname);
-    setUserLastName(result.lastname);
-    setSelectedPinLikes(result.total_likes ?? 0);
-    console.log(result); // Check the final result
-  };
+    setPinCreatorName(userData?.firstname + " " + userData?.lastname);
+    console.log(pinCreatorName)
+  }
 
   const closeModal = () => {
     setModalOpen(false);
     setSelectedPin(null);
     setUserFirstName("");
     setUserLastName("");
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.delete('pin');
+    replace(`${pathname}?${nextSearchParams.toString()}`);
   };
   return (
     <div className={!onMapClick ? "h-screen" : ""}>
@@ -250,7 +270,7 @@ export default function Map({
             <Marker
               key={pin.id}
               position={{ lat: pin.latitude, lng: pin.longitude }}
-              onClick={() => handleMarkerClick(pin)}
+              onClick={() => handlePinClick(pin)}
               title={pin.name}
               icon={{
                 url: iconMappings[pin.topic_id as keyof typeof iconMappings],
@@ -284,11 +304,9 @@ export default function Map({
       <Modal
         isOpen={modalOpen}
         onClose={closeModal}
-        title={selectedPin?.name || ""}
-        description={selectedPin?.description || ""}
-        firstname={userFirstName}
-        lastname={userLastName}
-        like_count={selectedPinLikes}
+        title={selectedPin?.name}
+        description={selectedPin?.description}
+        name={pinCreatorName}
         pin_id={selectedPin?.id}
         event_name={selectedPin?.name}
         event_desc={selectedPin?.description}
