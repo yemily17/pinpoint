@@ -133,6 +133,10 @@ export default function Component() {
   useEffect(() => {
     const searchTopic = searchParams.get('topic');
     const searchPin = searchParams.get('pin');
+    setSelectedCommunity("1");
+    const params = new URLSearchParams(searchParams);
+                  params.set('community', "1");
+                    replace(`${pathname.replace('/communities', '/map')}?${params.toString()}`);
     const fetchTopics = async () => {
       const { data, error } = await supabase.from("topics").select();
 
@@ -188,11 +192,7 @@ export default function Component() {
         <span className="ml-2 text-2xl font-bold">PinPoint</span>
           </Link>
           <div className="community-selector ml-4">
-        <select
-          value={selectedCommunity}
-          onChange={handleCommunityChange}
-          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-        >
+        <select value={selectedCommunity} onChange={handleCommunityChange}>
           <option value="1">Columbia</option>
           <option value="2">NYC</option>
         </select>
