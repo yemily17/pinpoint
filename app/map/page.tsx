@@ -198,9 +198,12 @@ export default function Component() {
         </select>
           </div>
           <nav className="flex gap-4 ml-auto sm:gap-6">
+        <Link href="https://forms.gle/QunyQ39XTjiFQmdZ7" className="text-sm font-medium text-blue-500 underline hover:text-blue-700">
+          Feedback
+        </Link>
         {!user ? (
           <SignInButton mode="modal">
-            <Button>Sign In</Button>
+        <Button>Sign In</Button>
           </SignInButton>
         ) : (
           <SignOutButton />

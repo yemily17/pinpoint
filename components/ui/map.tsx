@@ -14,7 +14,7 @@ const iconMappings = {
   2: "/assets/topics/wheelchair.svg",
   3: "/assets/topics/police.svg",
   5: "/assets/topics/food.svg",
-  6: "/assets/topics/gym.svg",
+  27: "/assets/topics/gym.svg",
   8: "/assets/topics/world.svg",
   9: "/assets/topics/wifi.svg",
   10: "/assets/topics/water.svg",
