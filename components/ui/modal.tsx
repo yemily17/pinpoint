@@ -143,6 +143,7 @@ export default function Component({ isOpen, onClose, title, description, name, p
   const handleComment = () => {
     // Implement comment functionality
     console.log('Comment clicked')
+    alert('Comments not yet supported on PinPoint — check back soon!')
   }
 
   return (
