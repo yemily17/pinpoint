@@ -35,9 +35,6 @@ export default function Home() {
             <span className="ml-2 text-2xl font-bold">PinPoint</span>
           </Link>
           <nav className="flex gap-4 ml-auto sm:gap-6">
-          <Link href="/privacy" className="text-sm font-small underline hover:text-gray-400">
-          Privacy
-        </Link>
             {!isSignedIn ? (
               <SignInButton mode="modal">
                 <Button >Sign In</Button>
@@ -69,6 +66,11 @@ export default function Home() {
             </div>
           </section>
         </main>
+        <footer className="flex items-center justify-left h-14 bg-white text-black p-4">
+        <Link href="/privacy" className="text-sm font-small underline hover:text-gray-400">
+          Privacy Policy
+        </Link>
+      </footer>
       </div>
   );
 }
