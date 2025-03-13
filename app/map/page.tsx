@@ -50,6 +50,18 @@ import DropdownSearch from "@/components/dropdown-search";
 import { SignInButton, SignOutButton, useClerk, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 
+// Add this near the top with other constants
+const COMMUNITY_COORDINATES = {
+  "1": { // Columbia
+    lat: 40.80793,
+    lng: -73.9654486,
+  },
+  "2": { // NYC
+    lat: 40.7128,
+    lng: -74.0060,
+  }
+};
+
 export default function Component() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -70,6 +82,7 @@ export default function Component() {
   const { replace } = useRouter();
   const pathname = usePathname();
   const [selectedCommunity, setSelectedCommunity] = useState("1");
+  const [center, setCenter] = useState<google.maps.LatLngLiteral | null>(null);
 
   console.log("liked pins");
   console.log(likedPins.filter((pin) => pin.user_id === user?.id));
@@ -123,20 +136,26 @@ export default function Component() {
     // }
   // }, []);
   // }, [router.query, pins]);
-  const handleCommunityChange = (event) => {
-    setSelectedCommunity(event.target.value);
+  const handleCommunityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newCommunity = event.target.value;
+    setSelectedCommunity(newCommunity);
     const params = new URLSearchParams(searchParams);
-                  params.set('community', event.target.value);
-                    replace(`${pathname.replace('/communities', '/map')}?${params.toString()}`);
-    // Fetch and update topics based on the new community
+    params.set('community', newCommunity);
+    replace(`${pathname.replace('/communities', '/map')}?${params.toString()}`);
+    
+    // Update map center based on selected community
+    const newCenter = COMMUNITY_COORDINATES[newCommunity as keyof typeof COMMUNITY_COORDINATES];
+    if (newCenter) {
+      setCenter(newCenter);
+    }
   };
   useEffect(() => {
     const searchTopic = searchParams.get('topic');
     const searchPin = searchParams.get('pin');
     setSelectedCommunity("1");
     const params = new URLSearchParams(searchParams);
-                  params.set('community', "1");
-                    replace(`${pathname.replace('/communities', '/map')}?${params.toString()}`);
+    params.set('community', "1");
+    replace(`${pathname.replace('/communities', '/map')}?${params.toString()}`);
     const fetchTopics = async () => {
       const { data, error } = await supabase.from("topics").select();
 
@@ -187,29 +206,29 @@ export default function Component() {
   return (
     <div className="flex flex-col h-screen">
       <header className="flex items-center px-4 lg:px-6 h-14">
-          <Link className="flex items-center justify-center" href="#">
-        <MapPin className="w-6 h-6 text-primary" />
-        <span className="ml-2 text-2xl font-bold">PinPoint</span>
-          </Link>
-          <div className="community-selector ml-4">
-        <select value={selectedCommunity} onChange={handleCommunityChange}>
-          <option value="1">Columbia</option>
-          <option value="2">NYC</option>
-        </select>
-          </div>
-          <nav className="flex gap-4 ml-auto sm:gap-6">
-        <Link href="https://forms.gle/QunyQ39XTjiFQmdZ7" className="text-sm font-medium text-blue-500 underline hover:text-blue-700">
-          Feedback
+        <Link className="flex items-center justify-center" href="#">
+          <MapPin className="w-6 h-6 text-primary" />
+          <span className="ml-2 text-2xl font-bold">PinPoint</span>
         </Link>
-        {!user ? (
-          <SignInButton mode="modal">
-        <Button>Sign In</Button>
-          </SignInButton>
-        ) : (
-          <SignOutButton />
-        )}
-          </nav>
-        </header>
+        <div className="community-selector ml-4">
+          <select value={selectedCommunity} onChange={handleCommunityChange}>
+            <option value="1">Columbia</option>
+            <option value="2">NYC</option>
+          </select>
+        </div>
+        <nav className="flex gap-4 ml-auto sm:gap-6">
+          <Link href="https://forms.gle/QunyQ39XTjiFQmdZ7" className="text-sm font-medium text-blue-500 underline hover:text-blue-700">
+            Feedback
+          </Link>
+          {!user ? (
+            <SignInButton mode="modal">
+              <Button>Sign In</Button>
+            </SignInButton>
+          ) : (
+            <SignOutButton />
+          )}
+        </nav>
+      </header>
       <div className="absolute z-10 top-20 left-4 right-4">
         <div className="relative">
           
@@ -232,7 +251,10 @@ export default function Component() {
       <main className="relative flex-1">
         {/* Map component */}
         <div className="absolute inset-0 h-screen">
-          <PinMap pins={queriedPins} />
+          <PinMap 
+            pins={queriedPins} 
+            center={center}
+          />
         </div>
 
         <CreatePinModal

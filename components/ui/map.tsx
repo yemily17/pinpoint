@@ -89,6 +89,7 @@ export default function PinMap({
   location,
   style,
   openedPin,
+  center: propCenter,
 }: {
   pins: any[];
   onMapClick?: (e: google.maps.MapMouseEvent) => void;
@@ -96,6 +97,7 @@ export default function PinMap({
   setLocation?: (location: google.maps.LatLngLiteral) => void;
   style?: any;
   openedPin?: any;
+  center?: google.maps.LatLngLiteral | null;
 }) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -111,6 +113,14 @@ export default function PinMap({
   const { replace } = useRouter();
   // const router = useRouter();
 
+  useEffect(() => {
+    if (propCenter) {
+      setCenter(propCenter);
+      if (mapRef.current) {
+        mapRef.current.panTo(propCenter);
+      }
+    }
+  }, [propCenter]);
 
   const fetchPins = async () => {
     // Fetch pins from Supabase (you can uncomment this if you need it)
@@ -166,6 +176,11 @@ export default function PinMap({
   const onLoad = useCallback(
     (map: google.maps.Map) => {
       mapRef.current = map;
+      
+      // If we have a propCenter, use it immediately
+      if (propCenter) {
+        map.panTo(propCenter);
+      }
 
       // Ensure google object is defined before using it
       if (userLocation && google) {
@@ -184,7 +199,7 @@ export default function PinMap({
         });
       }
     },
-    [userLocation]
+    [userLocation, propCenter]
   );
 
   const onUnmount = useCallback(() => {
@@ -259,7 +274,7 @@ export default function PinMap({
       >
         <GoogleMap
           mapContainerStyle={style || containerStyle}
-          center={center}
+          center={propCenter || center}
           zoom={16}
           onLoad={onLoad}
           onUnmount={onUnmount}
