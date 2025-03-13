@@ -35,6 +35,9 @@ export default function Home() {
             <span className="ml-2 text-2xl font-bold">PinPoint</span>
           </Link>
           <nav className="flex gap-4 ml-auto sm:gap-6">
+          <Link href="/privacy" className="text-sm font-small underline hover:text-gray-400">
+          Privacy
+        </Link>
             {!isSignedIn ? (
               <SignInButton mode="modal">
                 <Button >Sign In</Button>
@@ -50,7 +53,7 @@ export default function Home() {
               <div className="flex flex-col items-center space-y-4 text-center">
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                    Connect with Your Community
+                    PinPoint Your Community
                   </h1>
                   <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
                     Discover local events, meet your neighbors, and stay updated
