@@ -31,8 +31,8 @@ export default function Home() {
       <div className="flex flex-col min-h-screen">
         <header className="flex items-center px-4 lg:px-6 h-14">
           <Link className="flex items-center justify-center" href="#">
-            <MapPin className="w-6 h-6 text-primary" />
-            <span className="ml-2 text-2xl font-bold">PinPoint</span>
+          <img src="/icons/pinpointLogo.png" alt="PinPoint Logo" className="w-6 h-6 rounded-md" />
+          <span className="ml-2 text-2xl font-bold">PinPoint</span>
           </Link>
           <nav className="flex gap-4 ml-auto sm:gap-6">
             {!isSignedIn ? (
