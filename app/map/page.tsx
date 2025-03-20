@@ -216,16 +216,6 @@ export default function Component() {
           <option value="2">NYC</option>
         </select>
           </div>
-          <nav className="flex gap-4 ml-auto sm:gap-6">
-        <Link href="https://forms.gle/QunyQ39XTjiFQmdZ7" className="text-sm font-medium text-blue-500 underline hover:text-blue-700">
-          Feedback
-        </Link>
-        <div className="community-selector ml-4">
-          <select value={selectedCommunity} onChange={handleCommunityChange}>
-            <option value="1">Columbia</option>
-            <option value="2">NYC</option>
-          </select>
-        </div>
         <nav className="flex gap-4 ml-auto sm:gap-6">
           <Link href="https://forms.gle/QunyQ39XTjiFQmdZ7" className="text-sm font-medium text-blue-500 underline hover:text-blue-700">
             Feedback
