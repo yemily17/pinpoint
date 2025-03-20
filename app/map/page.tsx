@@ -206,9 +206,19 @@ export default function Component() {
   return (
     <div className="flex flex-col h-screen">
       <header className="flex items-center px-4 lg:px-6 h-14">
-        <Link className="flex items-center justify-center" href="#">
-          <MapPin className="w-6 h-6 text-primary" />
-          <span className="ml-2 text-2xl font-bold">PinPoint</span>
+            <Link className="flex items-center justify-center rounded-md" href="#">
+            <img src="/icons/pinpointLogo.png" alt="PinPoint Logo" className="w-6 h-6 rounded-md" />
+            <span className="ml-2 text-2xl font-bold">PinPoint</span>
+            </Link>
+          <div className="community-selector ml-4">
+        <select value={selectedCommunity} onChange={handleCommunityChange}>
+          <option value="1">Columbia</option>
+          <option value="2">NYC</option>
+        </select>
+          </div>
+          <nav className="flex gap-4 ml-auto sm:gap-6">
+        <Link href="https://forms.gle/QunyQ39XTjiFQmdZ7" className="text-sm font-medium text-blue-500 underline hover:text-blue-700">
+          Feedback
         </Link>
         <div className="community-selector ml-4">
           <select value={selectedCommunity} onChange={handleCommunityChange}>
