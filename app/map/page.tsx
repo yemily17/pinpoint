@@ -152,10 +152,15 @@ export default function Component() {
   useEffect(() => {
     const searchTopic = searchParams.get('topic');
     const searchPin = searchParams.get('pin');
-    setSelectedCommunity("1");
+    const searchCommunity = searchParams.get('community');
+    setSelectedCommunity(searchCommunity || "1");
     const params = new URLSearchParams(searchParams);
-    params.set('community', "1");
+    // params.set('community', "1");
     replace(`${pathname.replace('/communities', '/map')}?${params.toString()}`);
+    const newCenter = COMMUNITY_COORDINATES[searchCommunity as keyof typeof COMMUNITY_COORDINATES];
+    if (newCenter) {
+      setCenter(newCenter);
+    }
     const fetchTopics = async () => {
       const { data, error } = await supabase.from("topics").select();
 
