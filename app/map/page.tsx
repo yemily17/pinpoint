@@ -162,7 +162,7 @@ export default function Component() {
       setCenter(newCenter);
     }
     const fetchTopics = async () => {
-      const { data, error } = await supabase.from("topics").select();
+      const { data, error } = await supabase.from("topics").select().eq("community_id", searchCommunity);
 
       if (error) {
         console.error("Error fetching topics:", error);
