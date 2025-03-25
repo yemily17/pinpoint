@@ -9,10 +9,9 @@ import { SignOutButton, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { SignInButton } from "@clerk/nextjs";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { MapPin } from "lucide-react";
 import React from "react";
 
 export default function Home() {
@@ -25,19 +24,42 @@ export default function Home() {
     }
   }, [isSignedIn, router]);
 
-  console.log(isSignedIn);
-
   return (
+    <>
+      <style>{`
+        .typewriter {
+          display: inline-block;
+          overflow: hidden;
+          white-space: nowrap;
+          border-right: 2px solid black;
+          animation: typing 3.5s steps(50, end), blink 0.75s step-end infinite;
+          max-width: 100%;
+        }
+
+        @keyframes typing {
+          from { width: 0 }
+          to { width: 100% }
+        }
+
+        @keyframes blink {
+          0%, 100% { border-color: transparent }
+          50% { border-color: black }
+        }
+      `}</style>
       <div className="flex flex-col min-h-screen">
         <header className="flex items-center px-4 lg:px-6 h-14">
           <Link className="flex items-center justify-center" href="#">
-          <img src="/icons/pinpointLogo.png" alt="PinPoint Logo" className="w-6 h-6 rounded-md" />
-          <span className="ml-2 text-2xl font-bold">PinPoint</span>
+            <img
+              src="/icons/pinpointLogo.png"
+              alt="PinPoint Logo"
+              className="w-6 h-6 rounded-md"
+            />
+            <span className="ml-2 text-2xl font-bold">PinPoint</span>
           </Link>
           <nav className="flex gap-4 ml-auto sm:gap-6">
             {!isSignedIn ? (
               <SignInButton mode="modal">
-                <Button >Sign In</Button>
+                <Button>Sign In</Button>
               </SignInButton>
             ) : (
               <SignOutButton />
@@ -52,9 +74,9 @@ export default function Home() {
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
                     PinPoint Your Community
                   </h1>
-                  <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-                    Discover local events, meet your neighbors, and stay updated
-                    with what's happening around you.
+                  <p className="mx-auto max-w-[700px] text-xl text-gray-600 dark:text-gray-400 text-center">
+                    <span>Discover local events, meet your neighbors, and</span><br />
+                    <span className="typewriter block">stay updated with what's happening around you.</span>
                   </p>
                 </div>
                 <div className="space-x-4">
@@ -67,10 +89,14 @@ export default function Home() {
           </section>
         </main>
         <footer className="flex items-center justify-left h-14 bg-white text-black p-4">
-        <Link href="/privacy" className="text-sm font-small underline hover:text-gray-400">
-          Privacy Policy
-        </Link>
-      </footer>
+          <Link
+            href="/privacy"
+            className="text-sm font-small underline hover:text-gray-400"
+          >
+            Privacy Policy
+          </Link>
+        </footer>
       </div>
+    </>
   );
 }
