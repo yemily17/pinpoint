@@ -135,7 +135,7 @@ export default function PinMap({
 
   useEffect(() => {
     fetchPins(); // Fetch pins on component mount
-    
+
     // Get the user's location
     if (navigator.geolocation) {
       console.log("NAVIGATOR")
@@ -166,7 +166,7 @@ export default function PinMap({
     const topic = searchParams.get('topic');
     console.log("PINS ARE:", pins);
     const pinParamId = searchParams.get('pin');
-    if(pinParamId && pins.length > 0){
+    if (pinParamId && pins.length > 0) {
       console.log("FINDING PIN BY ID:", pinParamId);
       console.log("FIRST PIN IS :", pins);
       const urlPin = pins.find((pin) => pin.id === parseInt(pinParamId));
@@ -184,7 +184,7 @@ export default function PinMap({
     console.log("cow", userLocation);
 
     // use hardcoded for now while developing
-    closestPins = getClosestPins(pins, initCenter.lat, initCenter.lng, k); 
+    closestPins = getClosestPins(pins, initCenter.lat, initCenter.lng, k);
 
     //uncomment to use actual location
     // if (!userLocation) {
@@ -196,28 +196,28 @@ export default function PinMap({
     setClosestPins(closestPins);
     console.log("CLOSEST PINS ARE:", closestPins);
   }, [pins.length, userLocation]);
-  
+
 
   //for use for the Haversine Distance calculation
-  function toRad(degree: number): number { 
+  function toRad(degree: number): number {
     return degree * Math.PI / 180;
   }
-  
+
   //use Haversine distance to calculate distance between two points using their latitudes and longitudes
   function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const earthRadius = 6371; // Earth radius in kilometers
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
     const a = Math.sin(dLat / 2) ** 2 +
-              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-              Math.sin(dLon / 2) ** 2;
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return earthRadius * c; // Distance in kilometers
   }
-  
+
   // Get k closest pins using haversineDistance
   function getClosestPins(
-    pins: { latitude: number; longitude: number; [key: string]: any }[],
+    pins: { latitude: number; longitude: number;[key: string]: any }[],
     userLat: number,
     userLng: number,
     k: number
@@ -234,7 +234,7 @@ export default function PinMap({
   const onLoad = useCallback(
     (map: google.maps.Map) => {
       mapRef.current = map;
-      
+
       // If we have a propCenter, use it immediately
       if (propCenter) {
         map.panTo(propCenter);
@@ -293,7 +293,7 @@ export default function PinMap({
     replace(`${pathname}?${params.toString()}`);
     console.log(pin);
     openPinModal(pin);
-    
+
   };
   const openPinModal = async (pin: any) => {
     setSelectedPin(pin);
@@ -326,20 +326,8 @@ export default function PinMap({
     replace(`${pathname}?${nextSearchParams.toString()}`);
   };
   return (
-    <div className={!onMapClick ? "h-screen" : ""}>
-      <LoadScript
-        googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-      >
-        {closestPins.length > 0 && (
-        <div className="absolute top-16 right-4 bg-white p-4 rounded shadow-lg z-3">
-          <h3 className="font-bold mb-2">Closest Pins</h3>
-          {closestPins.map(pin => (
-            <div key={pin.id}>
-              <strong>{pin.name}</strong> - {pin.distance.toFixed(2)} km
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="relative h-screen">
+      <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
         <GoogleMap
           mapContainerStyle={style || containerStyle}
           center={propCenter || center}
@@ -362,7 +350,6 @@ export default function PinMap({
             />
           ))}
           {location && <Marker position={location} title="Selected Location" />}
-
           {mapRef.current && (
             <Marker
               position={
@@ -382,6 +369,17 @@ export default function PinMap({
             />
           )}
         </GoogleMap>
+
+        {closestPins.length > 0 && (
+          <div className="absolute bottom-4 left-4 right-4 bg-white p-4 rounded shadow-lg">
+            <h3 className="font-bold mb-2">Closest Pins</h3>
+            {closestPins.map((pin) => (
+              <div key={pin.id}>
+                <strong>{pin.name}</strong> - {pin.distance.toFixed(2)} km
+              </div>
+            ))}
+          </div>
+        )}
       </LoadScript>
 
       <Modal
@@ -395,5 +393,6 @@ export default function PinMap({
         event_desc={selectedPin?.description}
       />
     </div>
+
   );
 }
