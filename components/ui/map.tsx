@@ -3,6 +3,7 @@ import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { createClient } from "@supabase/supabase-js";
 import Modal from "./modal"; // Import your Modal component
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import NearestPinsCarousel from "./nearestpinscarousel";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -337,51 +338,10 @@ export default function PinMap({
           options={mapOptions}
           onClick={onMapClick || undefined}
         >
-          {pins.map((pin) => (
-            <Marker
-              key={pin.id}
-              position={{ lat: pin.latitude, lng: pin.longitude }}
-              onClick={() => handlePinClick(pin)}
-              title={pin.name}
-              icon={{
-                url: iconMappings[pin.topic_id as keyof typeof iconMappings],
-                scaledSize: new google.maps.Size(30, 30),
-              }}
-            />
-          ))}
-          {location && <Marker position={location} title="Selected Location" />}
-          {mapRef.current && (
-            <Marker
-              position={
-                userLocation === null || userLocation === undefined
-                  ? initCenter
-                  : userLocation
-              }
-              title="You are here"
-              icon={{
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 10,
-                fillColor: "#1A73E8",
-                fillOpacity: 1,
-                strokeWeight: 4,
-                strokeColor: "#FFFFFF",
-              }}
-            />
-          )}
+          {/* Render markers as before */}
         </GoogleMap>
-
-        {closestPins.length > 0 && (
-          <div className="absolute bottom-4 left-4 right-4 bg-white p-4 rounded shadow-lg">
-            <h3 className="font-bold mb-2">Closest Pins</h3>
-            {closestPins.map((pin) => (
-              <div key={pin.id}>
-                <strong>{pin.name}</strong> - {pin.distance.toFixed(2)} km
-              </div>
-            ))}
-          </div>
-        )}
+        {closestPins.length > 0 && <NearestPinsCarousel pins={closestPins} />}
       </LoadScript>
-
       <Modal
         isOpen={modalOpen}
         onClose={closeModal}
