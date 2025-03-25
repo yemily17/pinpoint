@@ -176,18 +176,26 @@ export default function PinMap({
   }, [pins]);
 
   useEffect(() => {
+    if (pins.length === 0) return;
+
     //get k closest pins
     let closestPins;
     let k = 5;
     console.log("cow", userLocation);
-    if (!userLocation) {
-      closestPins = getClosestPins(pins, initCenter.lat, initCenter.lng, k); 
-    } else {
-      const { lat, lng } = userLocation;
-      closestPins = getClosestPins(pins, lat, lng, k);
-    }
+
+    // use hardcoded for now while developing
+    closestPins = getClosestPins(pins, initCenter.lat, initCenter.lng, k); 
+
+    //uncomment to use actual location
+    // if (!userLocation) {
+    //   closestPins = getClosestPins(pins, initCenter.lat, initCenter.lng, k); 
+    // } else {
+    //   const { lat, lng } = userLocation;
+    //   closestPins = getClosestPins(pins, lat, lng, k);
+    // }
+    setClosestPins(closestPins);
     console.log("CLOSEST PINS ARE:", closestPins);
-  }, [pins, userLocation]);
+  }, [pins.length, userLocation]);
   
 
   //for use for the Haversine Distance calculation
@@ -322,6 +330,16 @@ export default function PinMap({
       <LoadScript
         googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
       >
+        {closestPins.length > 0 && (
+        <div className="absolute top-16 right-4 bg-white p-4 rounded shadow-lg z-3">
+          <h3 className="font-bold mb-2">Closest Pins</h3>
+          {closestPins.map(pin => (
+            <div key={pin.id}>
+              <strong>{pin.name}</strong> - {pin.distance.toFixed(2)} km
+            </div>
+          ))}
+        </div>
+      )}
         <GoogleMap
           mapContainerStyle={style || containerStyle}
           center={propCenter || center}
