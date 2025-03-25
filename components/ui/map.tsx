@@ -111,6 +111,7 @@ export default function PinMap({
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
+  const [closestPins, setClosestPins] = useState<any[]>([]);
   // const router = useRouter();
 
   useEffect(() => {
@@ -173,6 +174,55 @@ export default function PinMap({
       openPinModal(urlPin);
     }
   }, [pins]);
+
+  useEffect(() => {
+    //get k closest pins
+    let closestPins;
+    let k = 5;
+    console.log("cow", userLocation);
+    if (!userLocation) {
+      closestPins = getClosestPins(pins, initCenter.lat, initCenter.lng, k); 
+    } else {
+      const { lat, lng } = userLocation;
+      closestPins = getClosestPins(pins, lat, lng, k);
+    }
+    console.log("CLOSEST PINS ARE:", closestPins);
+  }, [pins, userLocation]);
+  
+
+  //for use for the Haversine Distance calculation
+  function toRad(degree: number): number { 
+    return degree * Math.PI / 180;
+  }
+  
+  //use Haversine distance to calculate distance between two points using their latitudes and longitudes
+  function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const earthRadius = 6371; // Earth radius in kilometers
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+              Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadius * c; // Distance in kilometers
+  }
+  
+  // Get k closest pins using haversineDistance
+  function getClosestPins(
+    pins: { latitude: number; longitude: number; [key: string]: any }[],
+    userLat: number,
+    userLng: number,
+    k: number
+  ) {
+    return pins
+      .map(pin => ({
+        ...pin,
+        distance: haversineDistance(userLat, userLng, pin.latitude, pin.longitude)
+      }))
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, k);
+  }
+
   const onLoad = useCallback(
     (map: google.maps.Map) => {
       mapRef.current = map;
