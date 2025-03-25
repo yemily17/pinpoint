@@ -113,6 +113,7 @@ export default function PinMap({
   const pathname = usePathname();
   const { replace } = useRouter();
   const [closestPins, setClosestPins] = useState<any[]>([]);
+  const [closestPinsCarouselOpen, setClosestPinsCarouselOpen] = useState(false);
   // const router = useRouter();
 
   useEffect(() => {
@@ -195,6 +196,7 @@ export default function PinMap({
     //   closestPins = getClosestPins(pins, lat, lng, k);
     // }
     setClosestPins(closestPins);
+    setClosestPinsCarouselOpen(true);
     console.log("CLOSEST PINS ARE:", closestPins);
   }, [pins.length, userLocation]);
 
@@ -340,7 +342,7 @@ export default function PinMap({
         >
           {/* Render markers as before */}
         </GoogleMap>
-        {closestPins.length > 0 && <NearestPinsCarousel pins={closestPins} />}
+        {closestPins.length > 0 && closestPinsCarouselOpen && <NearestPinsCarousel pins={closestPins} setClosestPinsCarouselOpen={setClosestPinsCarouselOpen}/>}
       </LoadScript>
       <Modal
         isOpen={modalOpen}
