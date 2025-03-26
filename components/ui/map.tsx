@@ -91,6 +91,8 @@ export default function PinMap({
   style,
   openedPin,
   center: propCenter,
+  showCarousel,
+  setShowCarousel,
 }: {
   pins: any[];
   onMapClick?: (e: google.maps.MapMouseEvent) => void;
@@ -99,6 +101,8 @@ export default function PinMap({
   style?: any;
   openedPin?: any;
   center?: google.maps.LatLngLiteral | null;
+  showCarousel?: boolean;
+  setShowCarousel?: (showCarousel: boolean) => void;
 }) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -113,7 +117,7 @@ export default function PinMap({
   const pathname = usePathname();
   const { replace } = useRouter();
   const [closestPins, setClosestPins] = useState<any[]>([]);
-  const [closestPinsCarouselOpen, setClosestPinsCarouselOpen] = useState(false);
+  // const [closestPinsCarouselOpen, setClosestPinsCarouselOpen] = useState(false);
   // const router = useRouter();
 
   useEffect(() => {
@@ -196,7 +200,7 @@ export default function PinMap({
     //   closestPins = getClosestPins(pins, lat, lng, k);
     // }
     setClosestPins(closestPins);
-    setClosestPinsCarouselOpen(true);
+    setShowCarousel(true);
     console.log("CLOSEST PINS ARE:", closestPins);
   }, [pins.length, userLocation]);
 
@@ -342,7 +346,7 @@ export default function PinMap({
         >
           {/* Render markers as before */}
         </GoogleMap>
-        {closestPins.length > 0 && closestPinsCarouselOpen && <NearestPinsCarousel pins={closestPins} setClosestPinsCarouselOpen={setClosestPinsCarouselOpen}/>}
+        {closestPins.length > 0 && showCarousel && <NearestPinsCarousel pins={closestPins} setClosestPinsCarouselOpen={setShowCarousel}/>}
       </LoadScript>
       <Modal
         isOpen={modalOpen}

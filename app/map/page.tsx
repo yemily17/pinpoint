@@ -83,6 +83,7 @@ export default function Component() {
   const pathname = usePathname();
   const [selectedCommunity, setSelectedCommunity] = useState("1");
   const [center, setCenter] = useState<google.maps.LatLngLiteral | null>(null);
+  const [showCarousel, setShowCarousel] = useState(false); // Show carousel of nearest pins
 
   // Disable scrolling when this component mounts
   useEffect(() => {
@@ -144,6 +145,7 @@ export default function Component() {
 
   const handleSearchTopics = (data: any) => {
     console.log("=======================Database Found Topics:", data);
+    setShowCarousel(true);
     setQueriedPins(data);
   };
 
@@ -197,7 +199,7 @@ export default function Component() {
       <main className="relative h-full">
         {/* Full-screen map */}
         <div className="absolute inset-0 h-full w-full">
-          <PinMap pins={queriedPins} center={center} />
+          <PinMap pins={queriedPins} center={center} showCarousel={showCarousel} setShowCarousel={setShowCarousel}/>
         </div>
 
         <CreatePinModal
