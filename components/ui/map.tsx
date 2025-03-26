@@ -344,9 +344,46 @@ export default function PinMap({
           options={mapOptions}
           onClick={onMapClick || undefined}
         >
-          {/* Render markers as before */}
+          {pins.map((pin) => (
+            <Marker
+              key={pin.id}
+              position={{ lat: pin.latitude, lng: pin.longitude }}
+              onClick={() => handlePinClick(pin)}
+              title={pin.name}
+              icon={{
+                url: iconMappings[pin.topic_id as keyof typeof iconMappings],
+                scaledSize: new google.maps.Size(30, 30),
+              }}
+            />
+          ))}
+
+          {location && (
+            <Marker
+              position={location}
+              title="Selected Location"
+            />
+          )}
+
+          {mapRef.current && (
+            <Marker
+              position={
+                userLocation === null || userLocation === undefined
+                  ? initCenter
+                  : userLocation
+              }
+              title="You are here"
+              icon={{
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: "#1A73E8",
+                fillOpacity: 1,
+                strokeWeight: 4,
+                strokeColor: "#FFFFFF",
+              }}
+            />
+          )}
         </GoogleMap>
-        {closestPins.length > 0 && showCarousel && <NearestPinsCarousel pins={closestPins} setClosestPinsCarouselOpen={setShowCarousel}/>}
+        {closestPins.length > 0 && showCarousel && <NearestPinsCarousel pins={closestPins} setClosestPinsCarouselOpen={setShowCarousel} />}
       </LoadScript>
       <Modal
         isOpen={modalOpen}
