@@ -193,12 +193,12 @@ export default function PinMap({
     closestPins = getClosestPins(pins, initCenter.lat, initCenter.lng, k);
 
     //uncomment to use actual location
-    // if (!userLocation) {
-    //   closestPins = getClosestPins(pins, initCenter.lat, initCenter.lng, k); 
-    // } else {
-    //   const { lat, lng } = userLocation;
-    //   closestPins = getClosestPins(pins, lat, lng, k);
-    // }
+    if (!userLocation) {
+      closestPins = getClosestPins(pins, initCenter.lat, initCenter.lng, k); 
+    } else {
+      const { lat, lng } = userLocation;
+      closestPins = getClosestPins(pins, lat, lng, k);
+    }
     setClosestPins(closestPins);
     setShowCarousel(true);
     console.log("CLOSEST PINS ARE:", closestPins);
