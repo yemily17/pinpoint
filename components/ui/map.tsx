@@ -11,19 +11,58 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const iconMappings = {
-  1: "/assets/topics/bathroom.svg",
-  2: "/assets/topics/wheelchair.svg",
-  3: "/assets/topics/police.svg",
-  5: "/assets/topics/food.svg",
-  27: "/assets/topics/gym.svg",
-  8: "/assets/topics/world.svg",
-  9: "/assets/topics/wifi.svg",
-  10: "/assets/topics/water.svg",
-  11: "/assets/topics/farmers-market.svg",
-  12: "/assets/topics/book.svg",
-  18: "/assets/topics/pawprintLogo.svg",
-  23: "/assets/topics/flex.png",
-  24: "/assets/topics/vendingMachine.svg",
+  1: {
+    normal: "/assets/topics/bathroom.svg",
+    highlighted: "/assets/topics/bathroom-red.svg"
+  },
+  2: {
+    normal: "/assets/topics/wheelchair.svg",
+    highlighted: "/assets/topics/wheelchair-red.svg"
+  },
+  3: {
+    normal: "/assets/topics/police.svg",
+    highlighted: "/assets/topics/police-red.svg"
+  },
+  5: {
+    normal: "/assets/topics/food.svg",
+    highlighted: "/assets/topics/food-red.svg"
+  },
+  27: {
+    normal: "/assets/topics/gym.svg",
+    highlighted: "/assets/topics/gym-red.svg"
+  },
+  8: {
+    normal: "/assets/topics/world.svg",
+    highlighted: "/assets/topics/world-red.svg"
+  },
+  9: {
+    normal: "/assets/topics/wifi.svg",
+    highlighted: "/assets/topics/wifi-red.svg"
+  },
+  10: {
+    normal: "/assets/topics/water.svg",
+    highlighted: "/assets/topics/water-red.svg"
+  },
+  11: {
+    normal: "/assets/topics/farmers-market.svg",
+    highlighted: "/assets/topics/farmers-market-red.svg"
+  },
+  12: {
+    normal: "/assets/topics/book.svg",
+    highlighted: "/assets/topics/book-red.svg"
+  },
+  18: {
+    normal: "/assets/topics/pawprintLogo.svg",
+    highlighted: "/assets/topics/pawprintLogo-red.svg"
+  },
+  23: {
+    normal: "/assets/topics/flex.png",
+    highlighted: "/assets/topics/flex.png"  // Keep original for PNG files
+  },
+  24: {
+    normal: "/assets/topics/vendingMachine.svg",
+    highlighted: "/assets/topics/vendingMachine-red.svg"
+  },
 };
 
 const containerStyle = {
@@ -347,18 +386,14 @@ export default function PinMap({
   const getMarkerIcon = (pin: any) => {
     const baseIcon = iconMappings[pin.topic_id as keyof typeof iconMappings];
     if (pin.id === highlightedPinId) {
-      // For highlighted pin, use the same icon but with red color
+      // For highlighted pin, use the red version of the icon
       return {
-        url: baseIcon,
+        url: baseIcon.highlighted,
         scaledSize: new google.maps.Size(30, 30),
-        fillColor: "#FF0000",
-        fillOpacity: 1,
-        strokeColor: "#FFFFFF",
-        strokeWeight: 1,
       };
     }
     return {
-      url: baseIcon,
+      url: baseIcon.normal,
       scaledSize: new google.maps.Size(30, 30),
     };
   };
@@ -381,10 +416,7 @@ export default function PinMap({
               position={{ lat: pin.latitude, lng: pin.longitude }}
               onClick={() => handlePinClick(pin)}
               title={pin.name}
-              icon={{
-                url: iconMappings[pin.topic_id as keyof typeof iconMappings],
-                scaledSize: new google.maps.Size(30, 30),
-              }}
+              icon={getMarkerIcon(pin)}
             />
           ))}
 
