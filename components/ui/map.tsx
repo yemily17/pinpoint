@@ -11,19 +11,58 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const iconMappings = {
-  1: "/assets/topics/bathroom.svg",
-  2: "/assets/topics/wheelchair.svg",
-  3: "/assets/topics/police.svg",
-  5: "/assets/topics/food.svg",
-  27: "/assets/topics/gym.svg",
-  8: "/assets/topics/world.svg",
-  9: "/assets/topics/wifi.svg",
-  10: "/assets/topics/water.svg",
-  11: "/assets/topics/farmers-market.svg",
-  12: "/assets/topics/book.svg",
-  18: "/assets/topics/pawprintLogo.svg",
-  23: "/assets/topics/flex.png",
-  24: "/assets/topics/vendingMachine.svg",
+  1: {
+    normal: "/assets/topics/bathroom.svg",
+    highlighted: "/assets/topics/bathroom-red.svg"
+  },
+  2: {
+    normal: "/assets/topics/wheelchair.svg",
+    highlighted: "/assets/topics/wheelchair-red.svg"
+  },
+  3: {
+    normal: "/assets/topics/police.svg",
+    highlighted: "/assets/topics/police-red.svg"
+  },
+  5: {
+    normal: "/assets/topics/food.svg",
+    highlighted: "/assets/topics/food-red.svg"
+  },
+  27: {
+    normal: "/assets/topics/gym.svg",
+    highlighted: "/assets/topics/gym-red.svg"
+  },
+  8: {
+    normal: "/assets/topics/world.svg",
+    highlighted: "/assets/topics/world-red.svg"
+  },
+  9: {
+    normal: "/assets/topics/wifi.svg",
+    highlighted: "/assets/topics/wifi-red.svg"
+  },
+  10: {
+    normal: "/assets/topics/water.svg",
+    highlighted: "/assets/topics/water-red.svg"
+  },
+  11: {
+    normal: "/assets/topics/farmers-market.svg",
+    highlighted: "/assets/topics/farmers-market-red.svg"
+  },
+  12: {
+    normal: "/assets/topics/book.svg",
+    highlighted: "/assets/topics/book-red.svg"
+  },
+  18: {
+    normal: "/assets/topics/pawprintLogo.svg",
+    highlighted: "/assets/topics/pawprintLogo-red.svg"
+  },
+  23: {
+    normal: "/assets/topics/flex.png",
+    highlighted: "/assets/topics/flex.png"  // Keep original for PNG files
+  },
+  24: {
+    normal: "/assets/topics/vendingMachine.svg",
+    highlighted: "/assets/topics/vendingMachine-red.svg"
+  },
 };
 
 const containerStyle = {
@@ -102,11 +141,12 @@ export default function PinMap({
   openedPin?: any;
   center?: google.maps.LatLngLiteral | null;
   showCarousel?: boolean;
-  setShowCarousel?: (showCarousel: boolean) => void;
+  setShowCarousel: (showCarousel: boolean) => void;
 }) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPin, setSelectedPin] = useState<any>(openedPin);
+  const [highlightedPinId, setHighlightedPinId] = useState<number | null>(null);
   const [userLocation, setUserLocation] =
     useState<google.maps.LatLngLiteral | null>(null);
   const [userFirstName, setUserFirstName] = useState<string>("");
@@ -117,7 +157,7 @@ export default function PinMap({
   const pathname = usePathname();
   const { replace } = useRouter();
   const [closestPins, setClosestPins] = useState<any[]>([]);
-  // const [closestPinsCarouselOpen, setClosestPinsCarouselOpen] = useState(false);
+  const [hoveredPinId, setHoveredPinId] = useState<number | null>(null);
   // const router = useRouter();
 
   useEffect(() => {
@@ -283,6 +323,7 @@ export default function PinMap({
 
   const handlePinClick = async (pin: any) => {
     setSelectedPin(pin);
+    setHighlightedPinId(pin.id); 
     // Fetch topic name
     const { data: topicData, error: topicError } = await supabase
       .from("topics")
@@ -300,8 +341,8 @@ export default function PinMap({
     replace(`${pathname}?${params.toString()}`);
     console.log(pin);
     openPinModal(pin);
-
   };
+
   const openPinModal = async (pin: any) => {
     setSelectedPin(pin);
     console.log("pin details", pin);
@@ -326,12 +367,45 @@ export default function PinMap({
   const closeModal = () => {
     setModalOpen(false);
     setSelectedPin(null);
+    setHighlightedPinId(null); 
     setUserFirstName("");
     setUserLastName("");
     const nextSearchParams = new URLSearchParams(searchParams);
     nextSearchParams.delete('pin');
     replace(`${pathname}?${nextSearchParams.toString()}`);
   };
+
+  const handleCarouselPinClick = (pin: any) => {
+    if (!pin) return;
+    setHighlightedPinId(pin.id);
+    setCenter({ lat: pin.latitude, lng: pin.longitude });
+    if (mapRef.current) {
+      mapRef.current.panTo({ lat: pin.latitude, lng: pin.longitude });
+    }
+    openPinModal(pin);
+  };
+
+  const handleCarouselClose = () => {
+    setShowCarousel(false);
+    setHighlightedPinId(null); // Reset the highlighted pin when carousel is closed
+  };
+
+  // Function to get marker icon with red color for highlighted pin
+  const getMarkerIcon = (pin: any) => {
+    const baseIcon = iconMappings[pin.topic_id as keyof typeof iconMappings];
+    if (pin.id === highlightedPinId || pin.id === hoveredPinId) {
+      // For highlighted or hovered pin, use the red version of the icon
+      return {
+        url: baseIcon.highlighted,
+        scaledSize: new google.maps.Size(30, 30),
+      };
+    }
+    return {
+      url: baseIcon.normal,
+      scaledSize: new google.maps.Size(30, 30),
+    };
+  };
+
   return (
     <div className="relative h-screen">
       <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -350,10 +424,7 @@ export default function PinMap({
               position={{ lat: pin.latitude, lng: pin.longitude }}
               onClick={() => handlePinClick(pin)}
               title={pin.name}
-              icon={{
-                url: iconMappings[pin.topic_id as keyof typeof iconMappings],
-                scaledSize: new google.maps.Size(30, 30),
-              }}
+              icon={getMarkerIcon(pin)}
             />
           ))}
 
@@ -383,7 +454,15 @@ export default function PinMap({
             />
           )}
         </GoogleMap>
-        {closestPins.length > 0 && showCarousel && <NearestPinsCarousel pins={closestPins} setClosestPinsCarouselOpen={setShowCarousel} />}
+        {closestPins.length > 0 && showCarousel && (
+          <NearestPinsCarousel 
+            pins={closestPins} 
+            setClosestPinsCarouselOpen={handleCarouselClose}
+            onPinClick={handleCarouselPinClick}
+            selectedPinId={highlightedPinId}
+            onPinHover={setHoveredPinId}
+          />
+        )}
       </LoadScript>
       <Modal
         isOpen={modalOpen}
@@ -396,6 +475,5 @@ export default function PinMap({
         event_desc={selectedPin?.description}
       />
     </div>
-
   );
 }
