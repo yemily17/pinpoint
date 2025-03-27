@@ -158,6 +158,7 @@ export default function PinMap({
   const { replace } = useRouter();
   const [closestPins, setClosestPins] = useState<any[]>([]);
   const [hoveredPinId, setHoveredPinId] = useState<number | null>(null);
+  // const router = useRouter();
 
   useEffect(() => {
     if (propCenter) {
