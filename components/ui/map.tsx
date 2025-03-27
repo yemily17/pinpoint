@@ -323,6 +323,7 @@ export default function PinMap({
 
   const handlePinClick = async (pin: any) => {
     setSelectedPin(pin);
+    setHighlightedPinId(pin.id); 
     // Fetch topic name
     const { data: topicData, error: topicError } = await supabase
       .from("topics")
@@ -340,8 +341,8 @@ export default function PinMap({
     replace(`${pathname}?${params.toString()}`);
     console.log(pin);
     openPinModal(pin);
-
   };
+
   const openPinModal = async (pin: any) => {
     setSelectedPin(pin);
     console.log("pin details", pin);
@@ -366,6 +367,7 @@ export default function PinMap({
   const closeModal = () => {
     setModalOpen(false);
     setSelectedPin(null);
+    setHighlightedPinId(null); 
     setUserFirstName("");
     setUserLastName("");
     const nextSearchParams = new URLSearchParams(searchParams);
