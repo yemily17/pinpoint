@@ -14,6 +14,7 @@ interface NearestPinsCarouselProps {
   setClosestPinsCarouselOpen: (isOpen: boolean) => void;
   onPinClick?: (pin: NearestPinsCarouselProps['pins'][0]) => void;
   selectedPinId?: number | null;
+  onPinHover?: (pinId: number | null) => void;
 }
 
 const NearestPinsCarousel: React.FC<NearestPinsCarouselProps> = ({
@@ -21,6 +22,7 @@ const NearestPinsCarousel: React.FC<NearestPinsCarouselProps> = ({
   setClosestPinsCarouselOpen,
   onPinClick,
   selectedPinId,
+  onPinHover,
 }) => {
   const [selectedPinIdState, setSelectedPinId] = useState<number | null>(null);
 
@@ -48,6 +50,8 @@ const NearestPinsCarousel: React.FC<NearestPinsCarouselProps> = ({
             pin={pin} 
             onClick={() => handlePinClick(pin)} 
             selected={pin.id === selectedPinIdState}
+            onMouseEnter={() => onPinHover?.(pin.id)}
+            onMouseLeave={() => onPinHover?.(null)}
           />
         ))}
       </div>

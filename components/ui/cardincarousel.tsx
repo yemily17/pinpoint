@@ -9,24 +9,41 @@ interface CardInCarouselProps {
     latitude: number;
     longitude: number;
   };
-  onClick?: () => void;
-  selected?: boolean;
+  onClick?: (pin: CardInCarouselProps['pin']) => void;
+  isSelected?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-const CardInCarousel: React.FC<CardInCarouselProps> = ({ pin, onClick, selected }) => {
+const CardInCarousel: React.FC<CardInCarouselProps> = ({ 
+  pin, 
+  onClick, 
+  isSelected,
+  onMouseEnter,
+  onMouseLeave 
+}) => {
   return (
     <div 
-      className={`min-w-[200px] p-4 rounded-lg border cursor-pointer transition-all
-        ${selected 
-          ? "bg-gray-500 text-white shadow-xl border-gray-700" 
-          : "bg-white text-black shadow-md border-gray-200 hover:shadow-lg"
+      className={`min-w-[200px] p-4 rounded-lg shadow-md border-2 transition-colors cursor-pointer
+        ${isSelected 
+          ? 'bg-gray-50 border-gray-800 shadow-lg' 
+          : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg'
         }`}
-      onClick={onClick}
+      onClick={() => onClick?.(pin)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
-      <h4 className="text-lg font-bold mb-1">{pin.name}</h4>
-      <p className="text-sm">{pin.distance.toFixed(2)} km away</p>
+      <div className="flex items-center justify-between mb-2">
+        <h4 className={`text-lg font-bold ${isSelected ? 'text-gray-800' : 'text-gray-700'}`}>
+          {pin.name}
+        </h4>
+        {isSelected && (
+          <div className="w-1.5 h-1.5 rounded-full bg-gray-800"></div>
+        )}
+      </div>
+      <p className="text-sm text-gray-600">{pin.distance.toFixed(2)} km away</p>
       {pin.description && (
-        <p className="mt-2 text-xs opacity-80">{pin.description}</p>
+        <p className="mt-2 text-xs text-gray-500">{pin.description}</p>
       )}
     </div>
   );

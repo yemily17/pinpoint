@@ -157,8 +157,7 @@ export default function PinMap({
   const pathname = usePathname();
   const { replace } = useRouter();
   const [closestPins, setClosestPins] = useState<any[]>([]);
-  // const [closestPinsCarouselOpen, setClosestPinsCarouselOpen] = useState(false);
-  // const router = useRouter();
+  const [hoveredPinId, setHoveredPinId] = useState<number | null>(null);
 
   useEffect(() => {
     if (propCenter) {
@@ -377,19 +376,12 @@ export default function PinMap({
 
   const handleCarouselPinClick = (pin: any) => {
     if (!pin) return;
-    
-    // If clicking the same pin that's already selected, deselect it
-    if (pin.id === highlightedPinId) {
-      setHighlightedPinId(null);
-      return;
-    }
-
-    // Otherwise, select the new pin
     setHighlightedPinId(pin.id);
     setCenter({ lat: pin.latitude, lng: pin.longitude });
     if (mapRef.current) {
       mapRef.current.panTo({ lat: pin.latitude, lng: pin.longitude });
     }
+    openPinModal(pin);
   };
 
   const handleCarouselClose = () => {
@@ -400,8 +392,8 @@ export default function PinMap({
   // Function to get marker icon with red color for highlighted pin
   const getMarkerIcon = (pin: any) => {
     const baseIcon = iconMappings[pin.topic_id as keyof typeof iconMappings];
-    if (pin.id === highlightedPinId) {
-      // For highlighted pin, use the red version of the icon
+    if (pin.id === highlightedPinId || pin.id === hoveredPinId) {
+      // For highlighted or hovered pin, use the red version of the icon
       return {
         url: baseIcon.highlighted,
         scaledSize: new google.maps.Size(30, 30),
@@ -467,6 +459,7 @@ export default function PinMap({
             setClosestPinsCarouselOpen={handleCarouselClose}
             onPinClick={handleCarouselPinClick}
             selectedPinId={highlightedPinId}
+            onPinHover={setHoveredPinId}
           />
         )}
       </LoadScript>
