@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import CardInCarousel from "./cardincarousel";
 import { Cross2Icon } from "@radix-ui/react-icons";
 
@@ -20,6 +20,14 @@ const NearestPinsCarousel: React.FC<NearestPinsCarouselProps> = ({
   setClosestPinsCarouselOpen,
   onPinClick,
 }) => {
+  const [selectedPinId, setSelectedPinId] = useState<number | null>(null);
+
+  const handlePinClick = (pin: NearestPinsCarouselProps['pins'][0]) => {
+    const isSelected = selectedPinId === pin.id;
+    setSelectedPinId(isSelected ? null : pin.id);
+    if (onPinClick) onPinClick(pin);
+  };
+
   return (
     <div className="absolute bottom-4 left-4 right-4 bg-white p-4 rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-2">
@@ -36,7 +44,8 @@ const NearestPinsCarousel: React.FC<NearestPinsCarouselProps> = ({
           <CardInCarousel 
             key={pin.id} 
             pin={pin} 
-            onClick={onPinClick}
+            onClick={() => handlePinClick(pin)} 
+            selected={pin.id === selectedPinId}
           />
         ))}
       </div>
