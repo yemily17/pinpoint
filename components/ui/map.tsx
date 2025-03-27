@@ -102,11 +102,12 @@ export default function PinMap({
   openedPin?: any;
   center?: google.maps.LatLngLiteral | null;
   showCarousel?: boolean;
-  setShowCarousel?: (showCarousel: boolean) => void;
+  setShowCarousel: (showCarousel: boolean) => void;
 }) {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPin, setSelectedPin] = useState<any>(openedPin);
+  const [highlightedPinId, setHighlightedPinId] = useState<number | null>(null);
   const [userLocation, setUserLocation] =
     useState<google.maps.LatLngLiteral | null>(null);
   const [userFirstName, setUserFirstName] = useState<string>("");
@@ -332,6 +333,36 @@ export default function PinMap({
     nextSearchParams.delete('pin');
     replace(`${pathname}?${nextSearchParams.toString()}`);
   };
+
+  const handleCarouselPinClick = (pin: any) => {
+    if (!pin) return;
+    setHighlightedPinId(pin.id);
+    setCenter({ lat: pin.latitude, lng: pin.longitude });
+    if (mapRef.current) {
+      mapRef.current.panTo({ lat: pin.latitude, lng: pin.longitude });
+    }
+  };
+
+  // Function to get marker icon with red color for highlighted pin
+  const getMarkerIcon = (pin: any) => {
+    const baseIcon = iconMappings[pin.topic_id as keyof typeof iconMappings];
+    if (pin.id === highlightedPinId) {
+      // For highlighted pin, use a red circle marker
+      return {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: "#FF0000",
+        fillOpacity: 1,
+        strokeWeight: 2,
+        strokeColor: "#FFFFFF",
+      };
+    }
+    return {
+      url: baseIcon,
+      scaledSize: new google.maps.Size(30, 30),
+    };
+  };
+
   return (
     <div className="relative h-screen">
       <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -350,10 +381,7 @@ export default function PinMap({
               position={{ lat: pin.latitude, lng: pin.longitude }}
               onClick={() => handlePinClick(pin)}
               title={pin.name}
-              icon={{
-                url: iconMappings[pin.topic_id as keyof typeof iconMappings],
-                scaledSize: new google.maps.Size(30, 30),
-              }}
+              icon={getMarkerIcon(pin)}
             />
           ))}
 
@@ -383,7 +411,13 @@ export default function PinMap({
             />
           )}
         </GoogleMap>
-        {closestPins.length > 0 && showCarousel && <NearestPinsCarousel pins={closestPins} setClosestPinsCarouselOpen={setShowCarousel} />}
+        {closestPins.length > 0 && showCarousel && (
+          <NearestPinsCarousel 
+            pins={closestPins} 
+            setClosestPinsCarouselOpen={setShowCarousel}
+            onPinClick={handleCarouselPinClick}
+          />
+        )}
       </LoadScript>
       <Modal
         isOpen={modalOpen}
@@ -396,6 +430,5 @@ export default function PinMap({
         event_desc={selectedPin?.description}
       />
     </div>
-
   );
 }

@@ -8,13 +8,17 @@ interface NearestPinsCarouselProps {
     name: string;
     distance: number;
     description?: string;
+    latitude: number;
+    longitude: number;
   }>;
   setClosestPinsCarouselOpen: (isOpen: boolean) => void;
+  onPinClick?: (pin: NearestPinsCarouselProps['pins'][0]) => void;
 }
 
 const NearestPinsCarousel: React.FC<NearestPinsCarouselProps> = ({
   pins,
   setClosestPinsCarouselOpen,
+  onPinClick,
 }) => {
   return (
     <div className="absolute bottom-4 left-4 right-4 bg-white p-4 rounded-lg shadow-lg">
@@ -29,7 +33,11 @@ const NearestPinsCarousel: React.FC<NearestPinsCarouselProps> = ({
       </div>
       <div className="flex space-x-4 overflow-x-auto">
         {pins.map((pin) => (
-          <CardInCarousel key={pin.id} pin={pin} />
+          <CardInCarousel 
+            key={pin.id} 
+            pin={pin} 
+            onClick={onPinClick}
+          />
         ))}
       </div>
     </div>
