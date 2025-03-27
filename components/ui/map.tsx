@@ -375,11 +375,24 @@ export default function PinMap({
 
   const handleCarouselPinClick = (pin: any) => {
     if (!pin) return;
+    
+    // If clicking the same pin that's already selected, deselect it
+    if (pin.id === highlightedPinId) {
+      setHighlightedPinId(null);
+      return;
+    }
+
+    // Otherwise, select the new pin
     setHighlightedPinId(pin.id);
     setCenter({ lat: pin.latitude, lng: pin.longitude });
     if (mapRef.current) {
       mapRef.current.panTo({ lat: pin.latitude, lng: pin.longitude });
     }
+  };
+
+  const handleCarouselClose = () => {
+    setShowCarousel(false);
+    setHighlightedPinId(null); // Reset the highlighted pin when carousel is closed
   };
 
   // Function to get marker icon with red color for highlighted pin
@@ -449,8 +462,9 @@ export default function PinMap({
         {closestPins.length > 0 && showCarousel && (
           <NearestPinsCarousel 
             pins={closestPins} 
-            setClosestPinsCarouselOpen={setShowCarousel}
+            setClosestPinsCarouselOpen={handleCarouselClose}
             onPinClick={handleCarouselPinClick}
+            selectedPinId={highlightedPinId}
           />
         )}
       </LoadScript>
