@@ -347,14 +347,14 @@ export default function PinMap({
   const getMarkerIcon = (pin: any) => {
     const baseIcon = iconMappings[pin.topic_id as keyof typeof iconMappings];
     if (pin.id === highlightedPinId) {
-      // For highlighted pin, use a red circle marker
+      // For highlighted pin, use the same icon but with red color
       return {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
+        url: baseIcon,
+        scaledSize: new google.maps.Size(30, 30),
         fillColor: "#FF0000",
         fillOpacity: 1,
-        strokeWeight: 2,
         strokeColor: "#FFFFFF",
+        strokeWeight: 1,
       };
     }
     return {
@@ -381,7 +381,10 @@ export default function PinMap({
               position={{ lat: pin.latitude, lng: pin.longitude }}
               onClick={() => handlePinClick(pin)}
               title={pin.name}
-              icon={getMarkerIcon(pin)}
+              icon={{
+                url: iconMappings[pin.topic_id as keyof typeof iconMappings],
+                scaledSize: new google.maps.Size(30, 30),
+              }}
             />
           ))}
 
