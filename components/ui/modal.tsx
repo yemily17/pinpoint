@@ -22,9 +22,10 @@ interface ModalProps {
   pin_id: number,
   event_name: string,
   event_desc: string,
+  image_url: string,
 }
 
-export default function Component({ isOpen, onClose, title, description, name, pin_id, event_name, event_desc }: ModalProps) {
+export default function Component({ isOpen, onClose, title, description, name, pin_id, event_name, event_desc, image_url }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const { user } = useUser()
   const [likes, setLikes] = useState(0)
@@ -179,6 +180,11 @@ export default function Component({ isOpen, onClose, title, description, name, p
                 <h3 className="text-2xl font-bold text-gray-900 leading-tight" id="modal-title">
                   {title}
                 </h3>
+                <img
+                  src={image_url}
+                  alt="Descriptive text for the image"
+                  className="w-full h-auto rounded-lg"
+                />
                 <p className="text-base text-gray-600 leading-relaxed">
                   {description}
                 </p>
