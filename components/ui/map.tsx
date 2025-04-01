@@ -473,6 +473,7 @@ export default function PinMap({
         pin_id={selectedPin?.id}
         event_name={selectedPin?.name}
         event_desc={selectedPin?.description}
+        image_url={selectedPin?.image_url || "/placeholder.svg"}
       />
     </div>
   );
