@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useClerk, useUser } from "@clerk/nextjs"
 import { set } from 'zod'
 import { ShareButton } from '../share-button'
+import { Button } from '../ui/button'
+import { SignInButton } from '@clerk/nextjs'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -30,7 +32,9 @@ export default function Component({ isOpen, onClose, title, description, name, p
   const [likes, setLikes] = useState(0)
   const [userVote, setUserVote] = useState<1 | -1 | 0>(0)
   const { openSignIn } = useClerk(); // Destructure openSignIn method
-
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [showComments, setShowComments] = useState(false);
 
   console.log(user)
   useEffect(() => {
@@ -140,11 +144,49 @@ export default function Component({ isOpen, onClose, title, description, name, p
     // await supabase.from('votes').upsert({ user_id: user?.id, pin_id, vote_type: voteType })
   }
 
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !pin_id || !newComment.trim()) return;
+
+    const { error } = await supabase
+      .from('comments')
+      .insert({
+        pin_id: pin_id,
+        user_id: user.id,
+        content: newComment.trim()
+      });
+
+    if (error) {
+      console.error('Error posting comment:', error);
+    } else {
+      setNewComment('');
+      fetchComments();
+    }
+  };
+
   const handleComment = () => {
-    // Implement comment functionality
-    console.log('Comment clicked')
-    alert('Comments not yet supported on PinPoint — check back soon!')
+    setShowComments(!showComments);
   }
+
+  useEffect(() => {
+    if (pin_id && showComments) {
+      fetchComments();
+    }
+  }, [pin_id, showComments]);
+
+  const fetchComments = async () => {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*, users(firstname, lastname)')
+      .eq('pin_id', pin_id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching comments:', error);
+    } else {
+      setComments(data || []);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -153,92 +195,156 @@ export default function Component({ isOpen, onClose, title, description, name, p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex justify-center items-end bg-black bg-opacity-50 p-4 sm:p-6"
+          className="fixed inset-0 z-50 flex flex-col items-start bg-black bg-opacity-50 p-4 sm:p-6"
           role="dialog"
           aria-modal="true"
           onClick={onClose}
         >
-          <motion.div
-            ref={modalRef}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="w-full max-w-lg bg-white shadow-2xl rounded-t-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="relative p-6 space-y-4">
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition ease-in-out duration-150"
-                aria-label="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-bold text-gray-900 leading-tight" id="modal-title">
-                  {title}
-                </h3>
-                <p className="text-base text-gray-600 leading-relaxed">
-                  {description}
-                </p>
-              </div>
-              <div className="pt-2">
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Created By:</span>{' '}
-                  <span className="text-gray-900">{name}</span>
-                </p>
-              </div>
-              <div className="flex items-center justify-between pt-4">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={async () => {
-                      if (!user) {
-                        openSignIn();
-                        return;
-                      }
-                      handleVote(1);
-                    }}
-                    className={`p-2 rounded-full ${userVote === 1 ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
-                    aria-label="Upvote"
-                  >
-                    <ThumbsUp className="h-5 w-5" />
-                  </button>
-                  <span className="font-semibold text-lg" aria-live="polite">{likes}</span>
-                  <button
-                    onClick={async () => {
-                      if (!user) {
-                        openSignIn();
-                        return;
-                      }
-                      handleVote(-1);
-                    }}
-                    className={`p-2 rounded-full ${userVote === -1 ? 'bg-red-100 text-red-600' : 'hover:bg-gray-100'}`}
-                    aria-label="Downvote"
-                  >
-                    <ThumbsDown className="h-5 w-5" />
-                  </button>
+          <div className="flex flex-col gap-4 w-full max-w-lg">
+            {/* Main Modal Content */}
+            <motion.div
+              ref={modalRef}
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="w-full bg-white shadow-2xl rounded-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative p-6 space-y-4">
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition ease-in-out duration-150"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold text-gray-900 leading-tight" id="modal-title">
+                    {title}
+                  </h3>
+                  <p className="text-base text-gray-600 leading-relaxed">
+                    {description}
+                  </p>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={async () => {
-                      if (!user) {
-                        openSignIn();
-                        return;
-                      }
-                      handleComment();
-                    }}
-                    className="p-2 rounded-full hover:bg-gray-100" aria-label="Comment">
-                    <MessageSquare className="h-5 w-5" />
-                  </button>
-                  <ShareButton
-                    title="Check out this awesome page!"
-                    description="I found this great website and thought you might like it too."
-                  />
+                <div className="pt-2">
+                  <p className="text-sm text-gray-700">
+                    <span className="font-semibold">Created By:</span>{' '}
+                    <span className="text-gray-900">{name}</span>
+                  </p>
+                </div>
+                <div className="flex items-center justify-between pt-4">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={async () => {
+                        if (!user) {
+                          openSignIn();
+                          return;
+                        }
+                        handleVote(1);
+                      }}
+                      className={`p-2 rounded-full ${userVote === 1 ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
+                      aria-label="Upvote"
+                    >
+                      <ThumbsUp className="h-5 w-5" />
+                    </button>
+                    <span className="font-semibold text-lg" aria-live="polite">{likes}</span>
+                    <button
+                      onClick={async () => {
+                        if (!user) {
+                          openSignIn();
+                          return;
+                        }
+                        handleVote(-1);
+                      }}
+                      className={`p-2 rounded-full ${userVote === -1 ? 'bg-red-100 text-red-600' : 'hover:bg-gray-100'}`}
+                      aria-label="Downvote"
+                    >
+                      <ThumbsDown className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!user) {
+                          openSignIn();
+                          return;
+                        }
+                        handleComment();
+                      }}
+                      className={`p-2 rounded-full hover:bg-gray-100 ${showComments ? 'bg-blue-100 text-blue-600' : ''}`}
+                      aria-label="Comment"
+                    >
+                      <MessageSquare className="h-5 w-5" />
+                    </button>
+                    <ShareButton
+                      title="Check out this awesome page!"
+                      description="I found this great website and thought you might like it too."
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* Comments Section */}
+            <AnimatePresence>
+              {showComments && (
+                <motion.div
+                  initial={{ x: "-100%", opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: "-100%", opacity: 0 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  className="w-full bg-white shadow-2xl rounded-2xl overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="relative p-6 space-y-4">
+                    <h3 className="text-xl font-bold">Comments</h3>
+                    
+                    <div className="max-h-[40vh] overflow-y-auto space-y-4">
+                      {comments.map((comment) => (
+                        <div key={comment.id} className="border-b pb-3">
+                          <div className="flex justify-between items-start">
+                            <p className="font-semibold">
+                              {comment.users?.firstname} {comment.users?.lastname}
+                            </p>
+                            <span className="text-sm text-gray-500">
+                              {new Date(comment.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-gray-600">{comment.content}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {user ? (
+                      <form onSubmit={handleSubmitComment} className="mt-4">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="Write a comment..."
+                            className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <Button type="submit" disabled={!newComment.trim()}>
+                            Post
+                          </Button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="text-center p-4">
+                        <p>Please sign in to comment</p>
+                        <SignInButton mode="modal">
+                          <Button className="mt-2">Sign In</Button>
+                        </SignInButton>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

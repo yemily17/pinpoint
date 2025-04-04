@@ -3,6 +3,7 @@ import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { createClient } from "@supabase/supabase-js";
 import Modal from "./modal"; // Import your Modal component
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import CommentsSection from "@/components/comments-section";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -111,7 +112,8 @@ export default function PinMap({
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
-  // const router = useRouter();
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [currentPinId, setCurrentPinId] = useState<number | null>(null);
 
   useEffect(() => {
     if (propCenter) {
@@ -325,6 +327,12 @@ export default function PinMap({
         pin_id={selectedPin?.id}
         event_name={selectedPin?.name}
         event_desc={selectedPin?.description}
+      />
+
+      <CommentsSection
+        isOpen={isCommentsOpen}
+        onClose={() => setIsCommentsOpen(false)}
+        pinId={currentPinId}
       />
     </div>
   );
