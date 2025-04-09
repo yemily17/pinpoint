@@ -26,13 +26,25 @@ interface ModalProps {
   event_desc: string,
 }
 
+interface CommentWithLikes {
+  id: number;
+  content: string;
+  created_at: string;
+  users: {
+    firstname: string;
+    lastname: string;
+  };
+  likes: number;
+  userVote: 1 | -1 | 0;
+}
+
 export default function Component({ isOpen, onClose, title, description, name, pin_id, event_name, event_desc }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const { user } = useUser()
   const [likes, setLikes] = useState(0)
   const [userVote, setUserVote] = useState<1 | -1 | 0>(0)
   const { openSignIn } = useClerk(); // Destructure openSignIn method
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<CommentWithLikes[]>([]);
   const [newComment, setNewComment] = useState('');
   const [showComments, setShowComments] = useState(false);
 
@@ -175,16 +187,78 @@ export default function Component({ isOpen, onClose, title, description, name, p
   }, [pin_id, showComments]);
 
   const fetchComments = async () => {
-    const { data, error } = await supabase
+    const { data: commentsData, error: commentsError } = await supabase
       .from('comments')
-      .select('*, users(firstname, lastname)')
+      .select('*, users(firstname, lastname), vote_type')
       .eq('pin_id', pin_id)
       .order('created_at', { ascending: false });
 
+    if (commentsError) {
+      console.error('Error fetching comments:', commentsError);
+      return;
+    }
+
+    // Get user's votes for comments if logged in
+    const commentsWithLikes = await Promise.all(commentsData!.map(async (comment) => {
+      let userVote = 0;
+      if (user) {
+        const { data: userVoteData } = await supabase
+          .from('comments')
+          .select('vote_type')
+          .eq('id', comment.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        userVote = userVoteData?.vote_type || 0;
+      }
+
+      return {
+        ...comment,
+        likes: comment.vote_type || 0,
+        userVote: userVote as 1 | -1 | 0
+      };
+    }));
+
+    setComments(commentsWithLikes);
+  };
+
+  const handleCommentVote = async (commentId: number, newVote: 1 | -1) => {
+    if (!user) {
+      openSignIn();
+      return;
+    }
+
+    // Find the comment
+    const comment = comments.find(c => c.id === commentId);
+    if (!comment) return;
+
+    // Calculate final vote (toggle if same vote)
+    const finalVote = comment.userVote === newVote ? 0 : newVote;
+
+    // Optimistically update UI
+    setComments(comments.map(c => {
+      if (c.id === commentId) {
+        const likeDiff = finalVote - c.userVote;
+        return {
+          ...c,
+          likes: c.likes + likeDiff,
+          userVote: finalVote
+        };
+      }
+      return c;
+    }));
+
+    // Update database
+    const { error } = await supabase
+      .from('comments')
+      .update({ vote_type: finalVote })
+      .eq('id', commentId)
+      .eq('user_id', user.id);
+
     if (error) {
-      console.error('Error fetching comments:', error);
-    } else {
-      setComments(data || []);
+      console.error('Error saving comment vote:', error);
+      // Revert optimistic update on error
+      fetchComments();
     }
   };
 
@@ -313,6 +387,23 @@ export default function Component({ isOpen, onClose, title, description, name, p
                             </span>
                           </div>
                           <p className="mt-1 text-gray-600">{comment.content}</p>
+                          <div className="mt-2 flex items-center space-x-2">
+                            <button
+                              onClick={() => handleCommentVote(comment.id, 1)}
+                              className={`p-1 rounded-full ${comment.userVote === 1 ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
+                              aria-label="Upvote comment"
+                            >
+                              <ThumbsUp className="h-4 w-4" />
+                            </button>
+                            <span className="text-sm font-semibold">{comment.likes}</span>
+                            <button
+                              onClick={() => handleCommentVote(comment.id, -1)}
+                              className={`p-1 rounded-full ${comment.userVote === -1 ? 'bg-red-100 text-red-600' : 'hover:bg-gray-100'}`}
+                              aria-label="Downvote comment"
+                            >
+                              <ThumbsDown className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
