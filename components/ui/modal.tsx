@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useClerk, useUser } from "@clerk/nextjs"
 import { set } from 'zod'
 import { ShareButton } from '../share-button'
+import { Button } from '../ui/button'
+import { SignInButton } from '@clerk/nextjs'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -25,13 +27,28 @@ interface ModalProps {
   image_url: string,
 }
 
+interface CommentWithLikes {
+  id: number;
+  content: string;
+  created_at: string;
+  users: {
+    firstname: string;
+    lastname: string;
+  };
+  likes: number;
+  userVote: 1 | -1 | 0;
+}
+
 export default function Component({ isOpen, onClose, title, description, name, pin_id, event_name, event_desc, image_url }: ModalProps) {
+
   const modalRef = useRef<HTMLDivElement>(null)
   const { user } = useUser()
   const [likes, setLikes] = useState(0)
   const [userVote, setUserVote] = useState<1 | -1 | 0>(0)
   const { openSignIn } = useClerk(); // Destructure openSignIn method
-
+  const [comments, setComments] = useState<CommentWithLikes[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [showComments, setShowComments] = useState(false);
 
   console.log(user)
   useEffect(() => {
@@ -141,11 +158,111 @@ export default function Component({ isOpen, onClose, title, description, name, p
     // await supabase.from('votes').upsert({ user_id: user?.id, pin_id, vote_type: voteType })
   }
 
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !pin_id || !newComment.trim()) return;
+
+    const { error } = await supabase
+      .from('comments')
+      .insert({
+        pin_id: pin_id,
+        user_id: user.id,
+        content: newComment.trim()
+      });
+
+    if (error) {
+      console.error('Error posting comment:', error);
+    } else {
+      setNewComment('');
+      fetchComments();
+    }
+  };
+
   const handleComment = () => {
-    // Implement comment functionality
-    console.log('Comment clicked')
-    alert('Comments not yet supported on PinPoint — check back soon!')
+    setShowComments(!showComments);
   }
+
+  useEffect(() => {
+    if (pin_id && showComments) {
+      fetchComments();
+    }
+  }, [pin_id, showComments]);
+
+  const fetchComments = async () => {
+    const { data: commentsData, error: commentsError } = await supabase
+      .from('comments')
+      .select('*, users(firstname, lastname), vote_type')
+      .eq('pin_id', pin_id)
+      .order('created_at', { ascending: false });
+
+    if (commentsError) {
+      console.error('Error fetching comments:', commentsError);
+      return;
+    }
+
+    // Get user's votes for comments if logged in
+    const commentsWithLikes = await Promise.all(commentsData!.map(async (comment) => {
+      let userVote = 0;
+      if (user) {
+        const { data: userVoteData } = await supabase
+          .from('comments')
+          .select('vote_type')
+          .eq('id', comment.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        userVote = userVoteData?.vote_type || 0;
+      }
+
+      return {
+        ...comment,
+        likes: comment.vote_type || 0,
+        userVote: userVote as 1 | -1 | 0
+      };
+    }));
+
+    setComments(commentsWithLikes);
+  };
+
+  const handleCommentVote = async (commentId: number, newVote: 1 | -1) => {
+    if (!user) {
+      openSignIn();
+      return;
+    }
+
+    // Find the comment
+    const comment = comments.find(c => c.id === commentId);
+    if (!comment) return;
+
+    // Calculate final vote (toggle if same vote)
+    const finalVote = comment.userVote === newVote ? 0 : newVote;
+
+    // Optimistically update UI
+    setComments(comments.map(c => {
+      if (c.id === commentId) {
+        const likeDiff = finalVote - c.userVote;
+        return {
+          ...c,
+          likes: c.likes + likeDiff,
+          userVote: finalVote
+        };
+      }
+      return c;
+    }));
+
+    // Update database
+    const { error } = await supabase
+      .from('comments')
+      .update({ vote_type: finalVote })
+      .eq('id', commentId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error saving comment vote:', error);
+      // Revert optimistic update on error
+      fetchComments();
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -159,16 +276,17 @@ export default function Component({ isOpen, onClose, title, description, name, p
           aria-modal="true"
           onClick={onClose}
         >
-          <motion.div
-            ref={modalRef}
-            initial={{ y: "100%" }}
+          <div className="flex flex-col gap-4 w-full max-w-lg">
+            {/* Main Modal Content */}
+            <motion.div
+              ref={modalRef}
+              initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="w-full max-w-lg bg-white shadow-2xl rounded-t-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            className="w-full bg-white shadow-2xl rounded-t-2xl overflow-hidden flex flex-col max-h-[85vh]"            onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative p-6 space-y-4">
+            <div className="relative p-6 space-y-4 overflow-y-auto flex-grow">
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition ease-in-out duration-150"
@@ -182,7 +300,7 @@ export default function Component({ isOpen, onClose, title, description, name, p
                 </h3>
                 <img
                   src={image_url}
-                  alt="Descriptive text for the image"
+                  alt={title}
                   className="w-full h-auto rounded-lg"
                 />
                 <p className="text-base text-gray-600 leading-relaxed">
@@ -195,56 +313,135 @@ export default function Component({ isOpen, onClose, title, description, name, p
                   <span className="text-gray-900">{name}</span>
                 </p>
               </div>
-              <div className="flex items-center justify-between pt-4">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={async () => {
-                      if (!user) {
-                        openSignIn();
-                        return;
-                      }
-                      handleVote(1);
-                    }}
-                    className={`p-2 rounded-full ${userVote === 1 ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
-                    aria-label="Upvote"
-                  >
-                    <ThumbsUp className="h-5 w-5" />
-                  </button>
-                  <span className="font-semibold text-lg" aria-live="polite">{likes}</span>
-                  <button
-                    onClick={async () => {
-                      if (!user) {
-                        openSignIn();
-                        return;
-                      }
-                      handleVote(-1);
-                    }}
-                    className={`p-2 rounded-full ${userVote === -1 ? 'bg-red-100 text-red-600' : 'hover:bg-gray-100'}`}
-                    aria-label="Downvote"
-                  >
-                    <ThumbsDown className="h-5 w-5" />
-                  </button>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={async () => {
-                      if (!user) {
-                        openSignIn();
-                        return;
-                      }
-                      handleComment();
-                    }}
-                    className="p-2 rounded-full hover:bg-gray-100" aria-label="Comment">
-                    <MessageSquare className="h-5 w-5" />
-                  </button>
-                  <ShareButton
-                    title="Check out this awesome page!"
-                    description="I found this great website and thought you might like it too."
-                  />
+                <div className="flex items-center justify-between pt-4">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={async () => {
+                        if (!user) {
+                          openSignIn();
+                          return;
+                        }
+                        handleVote(1);
+                      }}
+                      className={`p-2 rounded-full ${userVote === 1 ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
+                      aria-label="Upvote"
+                    >
+                      <ThumbsUp className="h-5 w-5" />
+                    </button>
+                    <span className="font-semibold text-lg" aria-live="polite">{likes}</span>
+                    <button
+                      onClick={async () => {
+                        if (!user) {
+                          openSignIn();
+                          return;
+                        }
+                        handleVote(-1);
+                      }}
+                      className={`p-2 rounded-full ${userVote === -1 ? 'bg-red-100 text-red-600' : 'hover:bg-gray-100'}`}
+                      aria-label="Downvote"
+                    >
+                      <ThumbsDown className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!user) {
+                          openSignIn();
+                          return;
+                        }
+                        handleComment();
+                      }}
+                      className={`p-2 rounded-full hover:bg-gray-100 ${showComments ? 'bg-blue-100 text-blue-600' : ''}`}
+                      aria-label="Comment"
+                    >
+                      <MessageSquare className="h-5 w-5" />
+                    </button>
+                    <ShareButton
+                      title="Check out this awesome page!"
+                      description="I found this great website and thought you might like it too."
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* Comments Section */}
+            <AnimatePresence>
+              {showComments && (
+                <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  className="w-full bg-white shadow-2xl rounded-2xl overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="relative p-6 space-y-4">
+                    <h3 className="text-xl font-bold">Comments</h3>
+                    
+                    <div className="max-h-[40vh] overflow-y-auto space-y-4">
+                      {comments.map((comment) => (
+                        <div key={comment.id} className="border-b pb-3">
+                          <div className="flex justify-between items-start">
+                            <p className="font-semibold">
+                              {comment.users?.firstname} {comment.users?.lastname}
+                            </p>
+                            <span className="text-sm text-gray-500">
+                              {new Date(comment.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-gray-600">{comment.content}</p>
+                          <div className="mt-2 flex items-center space-x-2">
+                            <button
+                              onClick={() => handleCommentVote(comment.id, 1)}
+                              className={`p-1 rounded-full ${comment.userVote === 1 ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'}`}
+                              aria-label="Upvote comment"
+                            >
+                              <ThumbsUp className="h-4 w-4" />
+                            </button>
+                            <span className="text-sm font-semibold">{comment.likes}</span>
+                            <button
+                              onClick={() => handleCommentVote(comment.id, -1)}
+                              className={`p-1 rounded-full ${comment.userVote === -1 ? 'bg-red-100 text-red-600' : 'hover:bg-gray-100'}`}
+                              aria-label="Downvote comment"
+                            >
+                              <ThumbsDown className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {user ? (
+                      <form onSubmit={handleSubmitComment} className="mt-4">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="Write a comment..."
+                            className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <Button type="submit" disabled={!newComment.trim()}>
+                            Post
+                          </Button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="text-center p-4">
+                        <p>Please sign in to comment</p>
+                        <SignInButton mode="modal">
+                          <Button className="mt-2">Sign In</Button>
+                        </SignInButton>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

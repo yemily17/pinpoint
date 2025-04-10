@@ -3,6 +3,7 @@ import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { createClient } from "@supabase/supabase-js";
 import Modal from "./modal"; // Import your Modal component
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import CommentsSection from "@/components/comments-section";
 import NearestPinsCarousel from "./nearestpinscarousel";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -156,6 +157,8 @@ export default function PinMap({
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [currentPinId, setCurrentPinId] = useState<number | null>(null);
   const [closestPins, setClosestPins] = useState<any[]>([]);
   const [hoveredPinId, setHoveredPinId] = useState<number | null>(null);
   // const router = useRouter();
@@ -474,6 +477,12 @@ export default function PinMap({
         event_name={selectedPin?.name}
         event_desc={selectedPin?.description}
         image_url={selectedPin?.image_url || "/placeholder.svg"}
+      />
+
+      <CommentsSection
+        isOpen={isCommentsOpen}
+        onClose={() => setIsCommentsOpen(false)}
+        pinId={currentPinId}
       />
     </div>
   );
