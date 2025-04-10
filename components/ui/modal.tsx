@@ -269,7 +269,7 @@ export default function Component({ isOpen, onClose, title, description, name, p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex flex-col items-start bg-black bg-opacity-50 p-4 sm:p-6"
+          className="fixed inset-0 z-50 flex justify-center items-end bg-black bg-opacity-50 p-4 sm:p-6"
           role="dialog"
           aria-modal="true"
           onClick={onClose}
@@ -278,9 +278,9 @@ export default function Component({ isOpen, onClose, title, description, name, p
             {/* Main Modal Content */}
             <motion.div
               ref={modalRef}
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
+              initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="w-full bg-white shadow-2xl rounded-2xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
@@ -365,9 +365,9 @@ export default function Component({ isOpen, onClose, title, description, name, p
             <AnimatePresence>
               {showComments && (
                 <motion.div
-                  initial={{ x: "-100%", opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: "-100%", opacity: 0 }}
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
                   transition={{ type: "spring", damping: 25, stiffness: 300 }}
                   className="w-full bg-white shadow-2xl rounded-2xl overflow-hidden"
                   onClick={(e) => e.stopPropagation()}
