@@ -284,10 +284,9 @@ export default function Component({ isOpen, onClose, title, description, name, p
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="w-full bg-white shadow-2xl rounded-t-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            className="w-full bg-white shadow-2xl rounded-t-2xl overflow-hidden flex flex-col max-h-[85vh]"            onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative p-6 space-y-4">
+            <div className="relative p-6 space-y-4 overflow-y-auto flex-grow">
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition ease-in-out duration-150"
@@ -314,7 +313,6 @@ export default function Component({ isOpen, onClose, title, description, name, p
                   <span className="text-gray-900">{name}</span>
                 </p>
               </div>
-                </div>
                 <div className="flex items-center justify-between pt-4">
                   <div className="flex items-center space-x-2">
                     <button
