@@ -24,6 +24,7 @@ interface ModalProps {
   pin_id: number,
   event_name: string,
   event_desc: string,
+  image_url: string,
 }
 
 interface CommentWithLikes {
@@ -38,7 +39,8 @@ interface CommentWithLikes {
   userVote: 1 | -1 | 0;
 }
 
-export default function Component({ isOpen, onClose, title, description, name, pin_id, event_name, event_desc }: ModalProps) {
+export default function Component({ isOpen, onClose, title, description, name, pin_id, event_name, event_desc, image_url }: ModalProps) {
+
   const modalRef = useRef<HTMLDivElement>(null)
   const { user } = useUser()
   const [likes, setLikes] = useState(0)
@@ -281,31 +283,37 @@ export default function Component({ isOpen, onClose, title, description, name, p
               initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="w-full bg-white shadow-2xl rounded-2xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="relative p-6 space-y-4">
-                <button
-                  onClick={onClose}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition ease-in-out duration-150"
-                  aria-label="Close"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-gray-900 leading-tight" id="modal-title">
-                    {title}
-                  </h3>
-                  <p className="text-base text-gray-600 leading-relaxed">
-                    {description}
-                  </p>
-                </div>
-                <div className="pt-2">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold">Created By:</span>{' '}
-                    <span className="text-gray-900">{name}</span>
-                  </p>
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="w-full bg-white shadow-2xl rounded-t-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative p-6 space-y-4">
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition ease-in-out duration-150"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold text-gray-900 leading-tight" id="modal-title">
+                  {title}
+                </h3>
+                <img
+                  src={image_url}
+                  alt={title}
+                  className="w-full h-auto rounded-lg"
+                />
+                <p className="text-base text-gray-600 leading-relaxed">
+                  {description}
+                </p>
+              </div>
+              <div className="pt-2">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">Created By:</span>{' '}
+                  <span className="text-gray-900">{name}</span>
+                </p>
+              </div>
                 </div>
                 <div className="flex items-center justify-between pt-4">
                   <div className="flex items-center space-x-2">

@@ -15,27 +15,6 @@ import {
 } from "@/components/ui/card";
 import Image from 'next/image';
 
-import {
-  MapPin,
-  Plus,
-  Search,
-  ChevronUp,
-  Calendar,
-  Clock,
-  FileText,
-  ThumbsUp,
-  TrendingUp,
-  Sparkles,
-  Code,
-  Laptop,
-  Palette,
-  Book,
-  Music,
-  Camera,
-  Dumbbell,
-  ShowerHead,
-  Siren
-} from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { MultiValue } from "react-select";
 import { createClient } from "@supabase/supabase-js";
